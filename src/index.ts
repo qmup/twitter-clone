@@ -1,10 +1,15 @@
 import express from 'express';
-import userRouter from './user.routes';
+import usersRouter from './routes/users.routes';
+import DatabaseService from './services/database.services';
 
 const port = 4000;
 const app = express();
 
-app.use('/user', userRouter);
+app.use(express.json());
+app.use('/users', usersRouter);
+
+DatabaseService.connect();
+
 app.listen(port, () => {
   console.log(`Listening to port ${port}`);
 });

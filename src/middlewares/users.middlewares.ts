@@ -3,7 +3,11 @@ import { checkSchema } from 'express-validator';
 import usersService from '~/services/users.services';
 import { validate } from '~/utils/validation';
 
-export const loginValidator = (req: Request, res: Response, next: NextFunction) => {
+export const loginValidator = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Missing email or password ' });

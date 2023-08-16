@@ -10,6 +10,17 @@ app.use('/users', usersRouter);
 
 DatabaseService.connect();
 
+app.use(
+  (
+    err: any,
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    res.status(400).json({ error: err.message });
+  }
+);
+
 app.listen(port, () => {
   console.log(`Listening to port ${port}`);
 });

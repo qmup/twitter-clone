@@ -1,24 +1,39 @@
-import { NextFunction, Request, Response } from 'express';
 import { checkSchema } from 'express-validator';
+import HTTP_STATUS from '~/constants/httpStatus';
 import { ErrorWithStatus } from '~/models/Errors';
 import usersService from '~/services/users.services';
 import { validate } from '~/utils/validation';
 
-export const loginValidator = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Missing email or password ' });
+const loginSchema = checkSchema({
+  email: {
+    trim: true,
+    isEmail: true,
+    custom: {
+      options: async (value, { req }) => {
+        const user = await usersService.checkUser({
+          email: value,
+          password: req.body.password
+        });
+        if (!user) {
+          throw new Error('User not found');
+        }
+        req.user = user;
+        return true;
+      }
+    }
+  },
+  password: {
+    notEmpty: true,
+    isStrongPassword: {
+      options: {
+        minLength: 6
+      }
+    }
   }
-  next();
-};
+});
 
 const registerSchema = checkSchema({
   name: {
-    notEmpty: true,
     isString: true,
     trim: true,
     isLength: {
@@ -34,11 +49,11 @@ const registerSchema = checkSchema({
     isEmail: true,
     custom: {
       options: async (value) => {
-        const isExisted = await usersService.checkEmailExist(value);
-        if (isExisted) {
+        const user = await usersService.checkEmailExist(value);
+        if (user) {
           throw new ErrorWithStatus({
             message: 'Email already exists',
-            status: 401
+            status: HTTP_STATUS.UNAUTHORIZED
           });
         }
         return true;
@@ -79,4 +94,5 @@ const registerSchema = checkSchema({
   }
 });
 
+export const loginValidator = validate(loginSchema);
 export const registerValidator = validate(registerSchema);

@@ -1,25 +1,16 @@
 import express from 'express';
+import { defaultErrorHandler } from './middlewares/error.middlewares';
 import usersRouter from './routes/users.routes';
 import DatabaseService from './services/database.services';
 
 const port = 4000;
 const app = express();
+DatabaseService.connect();
 
 app.use(express.json());
 app.use('/users', usersRouter);
 
-DatabaseService.connect();
-
-app.use(
-  (
-    err: any,
-    req: express.Request,
-    res: express.Response,
-    next: express.NextFunction
-  ) => {
-    res.status(400).json({ error: err.message });
-  }
-);
+app.use(defaultErrorHandler);
 
 app.listen(port, () => {
   console.log(`Listening to port ${port}`);

@@ -1,3 +1,5 @@
+import { JwtPayload } from 'jsonwebtoken';
+
 export interface RegisterRequestBody {
   name: string;
   email: string;
@@ -8,4 +10,13 @@ export interface RegisterRequestBody {
 export interface LoginRequestBody {
   email: string;
   password: string;
+}
+
+export interface LogoutRequestBody {
+  refresh_token: string;
+}
+
+export interface TokenPayload extends JwtPayload {
+  user_id: string;
+  token_type: string;
 }

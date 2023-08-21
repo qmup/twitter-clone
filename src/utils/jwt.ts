@@ -3,18 +3,18 @@ import { TokenPayload } from '~/models/requests/User.requests';
 
 type SignTokenParams = {
   payload: string | Buffer | object;
-  privateKey?: string;
+  privateKey: string;
   options?: SignOptions;
 };
 
 type VerifyTokenParams = {
   token: string;
-  privateKey?: string;
+  privateKey: string;
 };
 
 export const signToken = ({
   payload,
-  privateKey = process.env.JWT_SECRET as string,
+  privateKey,
   options = { algorithm: 'HS256' }
 }: SignTokenParams) => {
   return new Promise<string>((resolve, reject) => {
@@ -27,10 +27,7 @@ export const signToken = ({
   });
 };
 
-export const verifyToken = ({
-  token,
-  privateKey = process.env.JWT_SECRET as string
-}: VerifyTokenParams) => {
+export const verifyToken = ({ token, privateKey }: VerifyTokenParams) => {
   return new Promise<TokenPayload>((resolve, reject) => {
     verify(token, privateKey, (error, decoded) => {
       if (error) {

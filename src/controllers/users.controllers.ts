@@ -1,10 +1,13 @@
 import { Request, Response } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
 import { ObjectId } from 'mongodb';
+import HTTP_STATUS from '~/constants/httpStatus';
 import {
+  EmailVerifyRequestBody,
   LoginRequestBody,
   LogoutRequestBody,
-  RegisterRequestBody
+  RegisterRequestBody,
+  TokenPayload
 } from '~/models/requests/User.requests';
 import usersService from '~/services/users.services';
 
@@ -33,4 +36,26 @@ export const logoutController = async (
   const { refresh_token } = req.body;
   await usersService.logout(refresh_token);
   return res.json({ message: 'Logout succesfully' });
+};
+
+export const verifyEmailController = async (
+  req: Request<ParamsDictionary, any, EmailVerifyRequestBody>,
+  res: Response
+) => {
+  const { decoded_email_verify_token } = req;
+  const { user_id } = decoded_email_verify_token as TokenPayload;
+  const user = await usersService.checkVerifyEmail(user_id);
+  if (!user) {
+    return res
+      .status(HTTP_STATUS.NOT_FOUND)
+      .json({ message: 'User not found' });
+  }
+
+  // Đã verify rồi thì không báo lỗi -> trả về status OK với messsage đã verify rồi
+  if (!user.email_verify_token) {
+    return res.json({ message: 'Email already verified' });
+  }
+
+  const result = await usersService.verifyEmail(user_id);
+  return res.json({ message: 'Verify succesfully', result });
 };

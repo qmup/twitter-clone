@@ -113,20 +113,22 @@ const accessTokenSchema = checkSchema(
   {
     Authorization: {
       notEmpty: true,
+      trim: true,
       custom: {
         options: async (value, { req }) => {
-          const access_token = value.split(' ')[1];
+          const access_token = (value || '').split(' ')[1];
 
           if (!access_token) {
             throw new ErrorWithStatus({
               status: HTTP_STATUS.UNAUTHORIZED,
-              message: 'Access token is required'
+              message: 'Token is required'
             });
           }
 
           try {
             const decoded_authorization = await verifyToken({
-              token: access_token
+              token: access_token,
+              privateKey: process.env.JWT_SECRET_ACCESS_TOKEN as string
             });
             (req as Request).decoded_authorization = decoded_authorization;
           } catch (error) {
@@ -147,12 +149,21 @@ const accessTokenSchema = checkSchema(
 const refreshTokenSchema = checkSchema(
   {
     refresh_token: {
-      notEmpty: true,
+      trim: true,
       custom: {
         options: async (value: string, { req }) => {
+          if (!value) {
+            throw new ErrorWithStatus({
+              status: HTTP_STATUS.UNAUTHORIZED,
+              message: 'Token is required'
+            });
+          }
           try {
             const [decoded_refresh_token, refresh_token] = await Promise.all([
-              verifyToken({ token: value }),
+              verifyToken({
+                token: value,
+                privateKey: process.env.JWT_SECRET_REFRESH_TOKEN as string
+              }),
               databaseService.refreshTokens.findOne({ token: value })
             ]);
             if (!refresh_token) {
@@ -179,7 +190,43 @@ const refreshTokenSchema = checkSchema(
   ['body']
 );
 
+const emailVerifyTokenSchema = checkSchema(
+  {
+    email_verify_token: {
+      trim: true,
+      custom: {
+        options: async (value: string, { req }) => {
+          if (!value) {
+            throw new ErrorWithStatus({
+              status: HTTP_STATUS.UNAUTHORIZED,
+              message: 'Token is required'
+            });
+          }
+
+          try {
+            const decoded_email_verify_token = await verifyToken({
+              token: value,
+              privateKey: process.env.JWT_SECRET_EMAIL_VERIFY_TOKEN as string
+            });
+
+            (req as Request).decoded_email_verify_token =
+              decoded_email_verify_token;
+            return true;
+          } catch (error) {
+            throw new ErrorWithStatus({
+              message: 'Invalid token',
+              status: HTTP_STATUS.UNAUTHORIZED
+            });
+          }
+        }
+      }
+    }
+  },
+  ['body']
+);
+
 export const loginValidator = validate(loginSchema);
 export const registerValidator = validate(registerSchema);
 export const accessTokenValidator = validate(accessTokenSchema);
 export const refreshTokenValidator = validate(refreshTokenSchema);
+export const emailVerifyTokenValidator = validate(emailVerifyTokenSchema);

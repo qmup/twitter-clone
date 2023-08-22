@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb';
-import { TokenType, UserVerifyStatus } from '~/constants/enums';
+import { TokenType } from '~/constants/enums';
 import { RegisterRequestBody } from '~/models/requests/User.requests';
 import RefreshToken from '~/models/schemas/RefreshToken.schema';
 import { User } from '~/models/schemas/User.schema';
@@ -113,16 +113,14 @@ class UsersService {
   async verifyEmail(user_id: string) {
     const [[access_token, refresh_token]] = await Promise.all([
       this.signAccessAndRefreshToken(user_id),
-      databaseService.users.updateOne(
-        { _id: new ObjectId(user_id) },
+      databaseService.users.updateOne({ _id: new ObjectId(user_id) }, [
         {
           $set: {
             email_verify_token: '',
-            updated_at: new Date(),
-            verify: UserVerifyStatus.Verified
+            updated_at: '$$NOW'
           }
         }
-      )
+      ])
     ]);
 
     return { access_token, refresh_token };

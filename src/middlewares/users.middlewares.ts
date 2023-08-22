@@ -1,6 +1,7 @@
 import { Request } from 'express';
 import { checkSchema } from 'express-validator';
 import { JsonWebTokenError } from 'jsonwebtoken';
+import { ObjectId } from 'mongodb';
 import HTTP_STATUS from '~/constants/httpStatus';
 import { ErrorWithStatus } from '~/models/Errors';
 import databaseService from '~/services/database.services';
@@ -225,8 +226,78 @@ const verifyEmailTokenSchema = checkSchema(
   ['body']
 );
 
+const forgotPasswordSchema = checkSchema(
+  {
+    email: {
+      isEmail: true,
+      trim: true,
+      custom: {
+        options: async (value: string, { req }) => {
+          const user = await usersService.checkUser({ email: value });
+          if (!user) {
+            throw new Error('User not found');
+          }
+          req.user = user;
+          return true;
+        }
+      }
+    }
+  },
+  ['body']
+);
+
+const verifyForgotPasswordSchema = checkSchema(
+  {
+    forgot_password_token: {
+      trim: true,
+      custom: {
+        options: async (value: string, { req }) => {
+          if (!value) {
+            throw new ErrorWithStatus({
+              status: HTTP_STATUS.UNAUTHORIZED,
+              message: 'Token is required'
+            });
+          }
+
+          try {
+            const decoded_verify_forgot_password_token = await verifyToken({
+              token: value,
+              privateKey: process.env.JWT_SECRET_FORGOT_PASSWORD_TOKEN as string
+            });
+
+            const { user_id } = decoded_verify_forgot_password_token;
+            const user = await databaseService.users.findOne({
+              _id: new ObjectId(user_id)
+            });
+
+            if (!user) {
+              throw new Error('User not found');
+            }
+
+            if (value !== user.forgot_password_token) {
+              throw new Error('Invalid token');
+            }
+
+            return true;
+          } catch (error) {
+            throw new ErrorWithStatus({
+              message: 'Invalid token',
+              status: HTTP_STATUS.UNAUTHORIZED
+            });
+          }
+        }
+      }
+    }
+  },
+  ['body']
+);
+
 export const loginValidator = validate(loginSchema);
 export const registerValidator = validate(registerSchema);
 export const accessTokenValidator = validate(accessTokenSchema);
 export const refreshTokenValidator = validate(refreshTokenSchema);
 export const verifyEmailTokenValidator = validate(verifyEmailTokenSchema);
+export const forgotPasswordValidator = validate(forgotPasswordSchema);
+export const verifyForgotPasswordValidator = validate(
+  verifyForgotPasswordSchema
+);

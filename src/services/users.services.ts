@@ -45,6 +45,16 @@ class UsersService {
     ]);
   }
 
+  private signForgotPasswordToken(user_id: string) {
+    return signToken({
+      privateKey: process.env.JWT_SECRET_FORGOT_PASSWORD_TOKEN as string,
+      payload: { user_id, token_type: TokenType.VerifyEmailToken },
+      options: {
+        expiresIn: process.env.FORGOT_PASSWORD_TOKEN_EXPIRES_IN
+      }
+    });
+  }
+
   async register(payload: RegisterRequestBody) {
     const user_id = new ObjectId();
 
@@ -80,10 +90,15 @@ class UsersService {
     return databaseService.users.findOne({ email });
   }
 
-  checkUser({ email, password }: { email: string; password: string }) {
+  checkUser({ email, password }: { email: string; password?: string }) {
+    if (password) {
+      return databaseService.users.findOne({
+        email,
+        password: hashPassword(password)
+      });
+    }
     return databaseService.users.findOne({
-      email,
-      password: hashPassword(password)
+      email
     });
   }
 
@@ -128,15 +143,23 @@ class UsersService {
 
   async resendVerifyEmail(user_id: string) {
     const email_verify_token = await this.signVerifyEmailToken(user_id);
-    console.log(
-      '🚀 ~ file: users.services.ts:131 ~ UsersService ~ resendVerifyEmail ~ email_verify_token:',
-      email_verify_token
-    );
     await databaseService.users.updateOne(
       { _id: new ObjectId(user_id) },
       { $set: { email_verify_token }, $currentDate: { updated_at: true } }
     );
     return { message: 'Send verify email success' };
+  }
+
+  async forgotPassword(user_id: string) {
+    const forgot_password_token = await this.signForgotPasswordToken(user_id);
+    await databaseService.users.updateOne(
+      { _id: new ObjectId(user_id) },
+      { $set: { forgot_password_token }, $currentDate: { updated_at: true } }
+    );
+    // Gửi email kèm đường link đến email cho người dùng
+    // Path: /reset-password?token=token
+    console.log(forgot_password_token);
+    return { message: 'Check your email to reset password' };
   }
 }
 

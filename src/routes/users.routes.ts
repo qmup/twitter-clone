@@ -3,14 +3,15 @@ import {
   loginController,
   logoutController,
   registerController,
+  resendVerifyEmailController,
   verifyEmailController
 } from '~/controllers/users.controllers';
 import {
   accessTokenValidator,
-  emailVerifyTokenValidator,
   loginValidator,
   refreshTokenValidator,
-  registerValidator
+  registerValidator,
+  verifyEmailTokenValidator
 } from '~/middlewares/users.middlewares';
 import { wrapRequestHandler } from '~/utils/handlers';
 
@@ -46,14 +47,26 @@ usersRouter.post(
 
 /**
  * Verify email when user clicks on the link in email
- * Path: /verify
+ * Path: /verify-email
  * Method: POST
  * Body: { email_verify_token: string }
  */
 usersRouter.post(
   '/verify-email',
-  emailVerifyTokenValidator,
+  verifyEmailTokenValidator,
   wrapRequestHandler(verifyEmailController)
+);
+
+/**
+ * Verify email when user clicks on the link in email
+ * Path: /resend-verify-email
+ * Method: POST
+ * Body: { email_verify_token: string }
+ */
+usersRouter.post(
+  '/resend-verify-email',
+  accessTokenValidator,
+  wrapRequestHandler(resendVerifyEmailController)
 );
 
 export default usersRouter;

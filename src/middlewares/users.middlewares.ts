@@ -190,7 +190,7 @@ const refreshTokenSchema = checkSchema(
   ['body']
 );
 
-const emailVerifyTokenSchema = checkSchema(
+const verifyEmailTokenSchema = checkSchema(
   {
     email_verify_token: {
       trim: true,
@@ -229,4 +229,4 @@ export const loginValidator = validate(loginSchema);
 export const registerValidator = validate(registerSchema);
 export const accessTokenValidator = validate(accessTokenSchema);
 export const refreshTokenValidator = validate(refreshTokenSchema);
-export const emailVerifyTokenValidator = validate(emailVerifyTokenSchema);
+export const verifyEmailTokenValidator = validate(verifyEmailTokenSchema);

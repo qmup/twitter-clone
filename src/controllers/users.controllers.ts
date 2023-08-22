@@ -1,14 +1,16 @@
 import { Request, Response } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
 import { ObjectId } from 'mongodb';
+import { UserVerifyStatus } from '~/constants/enums';
 import HTTP_STATUS from '~/constants/httpStatus';
 import {
-  EmailVerifyRequestBody,
   LoginRequestBody,
   LogoutRequestBody,
   RegisterRequestBody,
-  TokenPayload
+  TokenPayload,
+  VerifyEmailRequestBody
 } from '~/models/requests/User.requests';
+import databaseService from '~/services/database.services';
 import usersService from '~/services/users.services';
 
 export const loginController = async (
@@ -39,7 +41,7 @@ export const logoutController = async (
 };
 
 export const verifyEmailController = async (
-  req: Request<ParamsDictionary, any, EmailVerifyRequestBody>,
+  req: Request<ParamsDictionary, any, VerifyEmailRequestBody>,
   res: Response
 ) => {
   const { decoded_email_verify_token } = req;
@@ -58,4 +60,27 @@ export const verifyEmailController = async (
 
   const result = await usersService.verifyEmail(user_id);
   return res.json({ message: 'Verify succesfully', result });
+};
+
+export const resendVerifyEmailController = async (
+  req: Request<ParamsDictionary, any, VerifyEmailRequestBody>,
+  res: Response
+) => {
+  const { user_id } = req.decoded_authorization as TokenPayload;
+  const user = await databaseService.users.findOne({
+    _id: new ObjectId(user_id)
+  });
+  if (!user) {
+    return res
+      .status(HTTP_STATUS.NOT_FOUND)
+      .json({ message: 'User not found' });
+  }
+
+  // Đã verify rồi thì không báo lỗi -> trả về status OK với messsage đã verify rồi
+  if (user.verify === UserVerifyStatus.Verified) {
+    return res.json({ message: 'Email already verified' });
+  }
+
+  const result = await usersService.resendVerifyEmail(user_id);
+  return res.json(result);
 };

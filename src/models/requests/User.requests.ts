@@ -16,7 +16,7 @@ export interface LogoutRequestBody {
   refresh_token: string;
 }
 
-export interface EmailVerifyRequestBody {
+export interface VerifyEmailRequestBody {
   email_verify_token: string;
 }
 

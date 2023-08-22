@@ -28,10 +28,10 @@ class UsersService {
     });
   }
 
-  private signEmailVerifyToken(user_id: string) {
+  private signVerifyEmailToken(user_id: string) {
     return signToken({
       privateKey: process.env.JWT_SECRET_EMAIL_VERIFY_TOKEN as string,
-      payload: { user_id, token_type: TokenType.EmailVerifyToken },
+      payload: { user_id, token_type: TokenType.VerifyEmailToken },
       options: {
         expiresIn: process.env.EMAIL_VERIFY_TOKEN_EXPIRES_IN
       }
@@ -48,11 +48,11 @@ class UsersService {
   async register(payload: RegisterRequestBody) {
     const user_id = new ObjectId();
 
-    const email_verify_token = await this.signEmailVerifyToken(
+    const email_verify_token = await this.signVerifyEmailToken(
       user_id.toString()
     );
 
-    const result = await databaseService.users.insertOne(
+    await databaseService.users.insertOne(
       new User({
         ...payload,
         _id: user_id,
@@ -124,6 +124,19 @@ class UsersService {
     ]);
 
     return { access_token, refresh_token };
+  }
+
+  async resendVerifyEmail(user_id: string) {
+    const email_verify_token = await this.signVerifyEmailToken(user_id);
+    console.log(
+      '🚀 ~ file: users.services.ts:131 ~ UsersService ~ resendVerifyEmail ~ email_verify_token:',
+      email_verify_token
+    );
+    await databaseService.users.updateOne(
+      { _id: new ObjectId(user_id) },
+      { $set: { email_verify_token }, $currentDate: { updated_at: true } }
+    );
+    return { message: 'Send verify email success' };
   }
 }
 

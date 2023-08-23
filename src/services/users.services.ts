@@ -121,8 +121,17 @@ class UsersService {
     return databaseService.refreshTokens.deleteOne({ token });
   }
 
-  checkVerifyEmail(user_id: string) {
-    return databaseService.users.findOne({ _id: new ObjectId(user_id) });
+  getInfo(user_id: string) {
+    return databaseService.users.findOne(
+      { _id: new ObjectId(user_id) },
+      {
+        projection: {
+          password: 0,
+          email_verify_token: 0,
+          forgot_password_token: 0
+        }
+      }
+    );
   }
 
   async verifyEmail(user_id: string) {

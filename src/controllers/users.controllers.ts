@@ -41,7 +41,7 @@ export const logoutController = async (
 ) => {
   const { refresh_token } = req.body;
   await usersService.logout(refresh_token);
-  return res.json({ message: 'Logout succesfully' });
+  return res.json({ message: 'Logout success' });
 };
 
 export const verifyEmailController = async (
@@ -50,7 +50,7 @@ export const verifyEmailController = async (
 ) => {
   const { decoded_email_verify_token } = req;
   const { user_id } = decoded_email_verify_token as TokenPayload;
-  const user = await usersService.checkVerifyEmail(user_id);
+  const user = await usersService.getInfo(user_id);
   if (!user) {
     return res
       .status(HTTP_STATUS.NOT_FOUND)
@@ -63,7 +63,7 @@ export const verifyEmailController = async (
   }
 
   const result = await usersService.verifyEmail(user_id);
-  return res.json({ message: 'Verify succesfully', result });
+  return res.json({ message: 'Verify success', result });
 };
 
 export const resendVerifyEmailController = async (
@@ -115,4 +115,13 @@ export const resetPasswordController = async (
   const { password } = req.body;
   const result = await usersService.resetPassword(user_id, password);
   return res.json(result);
+};
+
+export const getInfoController = async (
+  req: Request<ParamsDictionary, any, any>,
+  res: Response
+) => {
+  const { user_id } = req.decoded_authorization as TokenPayload;
+  const result = await usersService.getInfo(user_id);
+  return res.json({ message: 'Get info success', result });
 };

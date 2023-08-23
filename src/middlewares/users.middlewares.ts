@@ -163,7 +163,6 @@ const registerSchema = checkSchema(
 const accessTokenSchema = checkSchema(
   {
     Authorization: {
-      notEmpty: true,
       trim: true,
       custom: {
         options: async (value, { req }) => {

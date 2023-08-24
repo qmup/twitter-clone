@@ -16,6 +16,26 @@ import { validate } from '~/utils/validation';
 // nếu chỉ muốn check body thì chỉ thêm body như là dependency
 // để nhanh hơn, cải thiện performance
 
+const userIdSchema: ParamSchema = {
+  custom: {
+    options: async (value: string, { req }) => {
+      if (!ObjectId.isValid(value)) {
+        throw new ErrorWithStatus({
+          message: 'ObjectId is invalid',
+          status: HTTP_STATUS.NOT_FOUND
+        });
+      }
+      const followed_user = usersService.getInfo(value);
+      if (!followed_user) {
+        throw new ErrorWithStatus({
+          message: 'User not found',
+          status: HTTP_STATUS.NOT_FOUND
+        });
+      }
+    }
+  }
+};
+
 const nameSchema: ParamSchema = {
   isString: true,
   trim: true,
@@ -399,27 +419,16 @@ const updateInfoSchema = checkSchema(
 
 const followSchema = checkSchema(
   {
-    followed_user_id: {
-      custom: {
-        options: async (value: string, { req }) => {
-          if (!ObjectId.isValid(value)) {
-            throw new ErrorWithStatus({
-              message: 'ObjectId is invalid',
-              status: HTTP_STATUS.NOT_FOUND
-            });
-          }
-          const followed_user = usersService.getInfo(value);
-          if (!followed_user) {
-            throw new ErrorWithStatus({
-              message: 'User not found',
-              status: HTTP_STATUS.NOT_FOUND
-            });
-          }
-        }
-      }
-    }
+    followed_user_id: userIdSchema
   },
   ['body']
+);
+
+const unfollowSchema = checkSchema(
+  {
+    user_id: userIdSchema
+  },
+  ['params']
 );
 
 export const loginValidator = validate(loginSchema);
@@ -434,3 +443,4 @@ export const verifyForgotPasswordValidator = validate(
 export const resetPasswordValidator = validate(resetPasswordSchema);
 export const updateInfoValidator = validate(updateInfoSchema);
 export const followValidator = validate(followSchema);
+export const unfollowValidator = validate(unfollowSchema);

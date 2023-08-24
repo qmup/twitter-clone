@@ -9,6 +9,7 @@ import {
   registerController,
   resendVerifyEmailController,
   resetPasswordController,
+  unfollowController,
   updateInfoController,
   verifyEmailController,
   verifyForgotPasswordController
@@ -22,6 +23,7 @@ import {
   refreshTokenValidator,
   registerValidator,
   resetPasswordValidator,
+  unfollowValidator,
   updateInfoValidator,
   verifiedUserValidator,
   verifyEmailTokenValidator,
@@ -159,16 +161,16 @@ usersRouter.patch(
 
 /**
  * get user info
- * Path: /update-info
- * Method: PUT
- * Body: { user: User }
+ * Path: /:username
+ * Method: GET
+ * Params: { username: string }
  */
 usersRouter.get('/:username', wrapRequestHandler(getProfileController));
 
 /**
  * follow someone
  * Path: /follow
- * Method: PUT
+ * Method: POST
  * Header: { Authorization: Bearer <access_token> }
  * Body: { followed_user_id: string }
  */
@@ -178,6 +180,21 @@ usersRouter.post(
   verifiedUserValidator,
   followValidator,
   wrapRequestHandler(followController)
+);
+
+/**
+ * unfollow someone
+ * Path: /follow/:user_id
+ * Method: DELETE
+ * Header: { Authorization: Bearer <access_token> }
+ * Params: { user_id: string }
+ */
+usersRouter.delete(
+  '/follow/:user_id',
+  accessTokenValidator,
+  verifiedUserValidator,
+  unfollowValidator,
+  wrapRequestHandler(unfollowController)
 );
 
 export default usersRouter;

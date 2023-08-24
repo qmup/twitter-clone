@@ -1,3 +1,4 @@
+import { ParamsDictionary } from 'express-serve-static-core';
 import { JwtPayload } from 'jsonwebtoken';
 import { UserVerifyStatus } from '~/constants/enums';
 
@@ -57,4 +58,8 @@ export interface GetProfileRequestParam {
 
 export interface FollowRequestBody {
   followed_user_id: string;
+}
+
+export interface UnfollowRequestParams extends ParamsDictionary {
+  user_id: string;
 }

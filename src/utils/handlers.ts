@@ -1,9 +1,9 @@
 import express from 'express';
 
 export const wrapRequestHandler =
-  (func: express.RequestHandler) =>
+  <T>(func: express.RequestHandler<T>) =>
   async (
-    req: express.Request,
+    req: express.Request<T>,
     res: express.Response,
     next: express.NextFunction
   ) => {

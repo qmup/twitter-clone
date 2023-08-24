@@ -1,6 +1,11 @@
 import { JwtPayload } from 'jsonwebtoken';
 import { UserVerifyStatus } from '~/constants/enums';
 
+export interface TokenPayload extends JwtPayload {
+  user_id: string;
+  token_type: string;
+  verify: UserVerifyStatus;
+}
 export interface RegisterRequestBody {
   name: string;
   email: string;
@@ -46,8 +51,6 @@ export interface UpdateInfoRequestBody {
   cover_photo?: string;
 }
 
-export interface TokenPayload extends JwtPayload {
-  user_id: string;
-  token_type: string;
-  verify: UserVerifyStatus;
+export interface GetProfileRequestParam {
+  username: string;
 }

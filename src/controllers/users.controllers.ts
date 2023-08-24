@@ -5,6 +5,7 @@ import { UserVerifyStatus } from '~/constants/enums';
 import HTTP_STATUS from '~/constants/httpStatus';
 import {
   ForgotPasswordRequestBody,
+  GetProfileRequestParam,
   LoginRequestBody,
   LogoutRequestBody,
   RegisterRequestBody,
@@ -135,9 +136,17 @@ export const updateInfoController = async (
   req: Request<ParamsDictionary, any, UpdateInfoRequestBody>,
   res: Response
 ) => {
-  type T = keyof UpdateInfoRequestBody;
   const { body } = req;
   const { user_id } = req.decoded_authorization as TokenPayload;
   const result = await usersService.updateInfo(user_id, body);
   return res.json({ message: 'Update info success', result });
+};
+
+export const getProfileController = async (
+  req: Request<GetProfileRequestParam>,
+  res: Response
+) => {
+  const { username } = req.params;
+  const result = await usersService.getProfile(username);
+  return res.json({ message: 'Get profile success', result });
 };

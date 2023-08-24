@@ -1,5 +1,7 @@
 import { ObjectId } from 'mongodb';
 import { TokenType, UserVerifyStatus } from '~/constants/enums';
+import HTTP_STATUS from '~/constants/httpStatus';
+import { ErrorWithStatus } from '~/models/Errors';
 import {
   RegisterRequestBody,
   UpdateInfoRequestBody
@@ -8,6 +10,7 @@ import RefreshToken from '~/models/schemas/RefreshToken.schema';
 import { User } from '~/models/schemas/User.schema';
 import { hashPassword } from '~/utils/crypto';
 import { signToken } from '~/utils/jwt';
+import { generateProjection } from '~/utils/utils';
 import databaseService from './database.services';
 
 class UsersService {
@@ -102,6 +105,7 @@ class UsersService {
         ...payload,
         _id: user_id,
         email_verify_token,
+        username: `user${user_id.toString()}`,
         date_of_birth: new Date(payload.date_of_birth),
         password: hashPassword(payload.password)
       })
@@ -168,11 +172,11 @@ class UsersService {
     return databaseService.users.findOne(
       { _id: new ObjectId(user_id) },
       {
-        projection: {
-          password: 0,
-          email_verify_token: 0,
-          forgot_password_token: 0
-        }
+        projection: generateProjection<User>([
+          'password',
+          'email_verify_token',
+          'forgot_password_token'
+        ])
       }
     );
   }
@@ -249,15 +253,38 @@ class UsersService {
         $currentDate: { updated_at: true }
       },
       {
-        projection: {
-          password: 0,
-          email_verify_token: 0,
-          forgot_password_token: 0
-        },
+        projection: generateProjection<User>([
+          'password',
+          'email_verify_token',
+          'forgot_password_token'
+        ]),
         returnDocument: 'after'
       }
     );
     return user.value;
+  }
+
+  async getProfile(username: string) {
+    const user = await databaseService.users.findOne(
+      { username },
+      {
+        projection: generateProjection<User>([
+          'password',
+          'email_verify_token',
+          'forgot_password_token',
+          'verify',
+          'created_at',
+          'updated_at'
+        ])
+      }
+    );
+
+    if (!user) {
+      throw new ErrorWithStatus({
+        status: HTTP_STATUS.NOT_FOUND,
+        message: 'User not found'
+      });
+    }
   }
 }
 

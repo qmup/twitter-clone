@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   forgotPasswordController,
   getInfoController,
+  getProfileController,
   loginController,
   logoutController,
   registerController,
@@ -153,5 +154,14 @@ usersRouter.patch(
   ]),
   wrapRequestHandler(updateInfoController)
 );
+
+/**
+ * get user info
+ * Path: /update-info
+ * Method: PUT
+ * Header: { Authorization: Bearer <access_token> }
+ * Body: { user: User }
+ */
+usersRouter.get('/:username', wrapRequestHandler(getProfileController));
 
 export default usersRouter;

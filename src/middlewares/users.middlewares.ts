@@ -1,9 +1,11 @@
-import { Request } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { ParamSchema, checkSchema } from 'express-validator';
 import { JsonWebTokenError } from 'jsonwebtoken';
 import { ObjectId } from 'mongodb';
+import { UserVerifyStatus } from '~/constants/enums';
 import HTTP_STATUS from '~/constants/httpStatus';
 import { ErrorWithStatus } from '~/models/Errors';
+import { TokenPayload } from '~/models/requests/User.requests';
 import databaseService from '~/services/database.services';
 import usersService from '~/services/users.services';
 import { verifyToken } from '~/utils/jwt';
@@ -14,29 +16,60 @@ import { validate } from '~/utils/validation';
 // nếu chỉ muốn check body thì chỉ thêm body như là dependency
 // để nhanh hơn, cải thiện performance
 
-const passwordSchema: Record<string, ParamSchema> = {
-  password: {
-    notEmpty: true,
-    isStrongPassword: {
-      options: {
-        minLength: 6
-      }
+const nameSchema: ParamSchema = {
+  isString: true,
+  trim: true,
+  isLength: {
+    options: {
+      min: 1,
+      max: 100
+    }
+  }
+};
+
+const dateOfBirthSchema: ParamSchema = {
+  isISO8601: {
+    options: {
+      strict: true,
+      strictSeparator: true
+    }
+  }
+};
+
+const passwordSchema: ParamSchema = {
+  notEmpty: true,
+  isStrongPassword: {
+    options: {
+      minLength: 6
+    }
+  }
+};
+
+const confirmPasswordSchema: ParamSchema = {
+  notEmpty: true,
+  isStrongPassword: {
+    options: {
+      minLength: 6
     }
   },
-  confirm_password: {
-    notEmpty: true,
-    isStrongPassword: {
-      options: {
-        minLength: 6
+  custom: {
+    options: (value, { req }) => {
+      if (value !== req.body.password) {
+        throw new Error('Password confirmation does not match password');
       }
-    },
-    custom: {
-      options: (value, { req }) => {
-        if (value !== req.body.password) {
-          throw new Error('Password confirmation does not match password');
-        }
-        return true;
-      }
+      return true;
+    }
+  }
+};
+
+const imageSchema: ParamSchema = {
+  optional: true,
+  isString: true,
+  trim: true,
+  isLength: {
+    options: {
+      min: 1,
+      max: 200
     }
   }
 };
@@ -90,8 +123,8 @@ const forgotPasswordTokenSchema: Record<string, ParamSchema> = {
 const loginSchema = checkSchema(
   {
     email: {
-      trim: true,
       isEmail: true,
+      trim: true,
       custom: {
         options: async (value, { req }) => {
           const user = await usersService.checkUser({
@@ -120,21 +153,14 @@ const loginSchema = checkSchema(
 
 const registerSchema = checkSchema(
   {
-    ...passwordSchema,
-    name: {
-      isString: true,
-      trim: true,
-      isLength: {
-        options: {
-          min: 1,
-          max: 100
-        }
-      }
-    },
+    password: passwordSchema,
+    confirm_password: confirmPasswordSchema,
+    name: nameSchema,
+    date_of_birth: dateOfBirthSchema,
     email: {
       notEmpty: true,
-      trim: true,
       isEmail: true,
+      trim: true,
       custom: {
         options: async (value) => {
           const user = await usersService.checkEmailExist(value);
@@ -145,14 +171,6 @@ const registerSchema = checkSchema(
             });
           }
           return true;
-        }
-      }
-    },
-    date_of_birth: {
-      isISO8601: {
-        options: {
-          strict: true,
-          strictSeparator: true
         }
       }
     }
@@ -301,8 +319,81 @@ const verifyForgotPasswordSchema = checkSchema(forgotPasswordTokenSchema, [
 
 const resetPasswordSchema = checkSchema(
   {
-    ...passwordSchema,
-    ...forgotPasswordTokenSchema
+    password: passwordSchema,
+    confirm_password: confirmPasswordSchema
+  },
+  ['body']
+);
+
+export const verifiedUserValidator = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { verify } = req.decoded_authorization as TokenPayload;
+  console.log('🚀 ~ file: users.middlewares.ts:318 ~ verify:', verify);
+
+  if (verify !== UserVerifyStatus.Verified) {
+    return next(
+      new ErrorWithStatus({
+        message: 'User not verified',
+        status: HTTP_STATUS.FORBIDDEN
+      })
+    );
+  }
+  next();
+};
+
+const updateInfoSchema = checkSchema(
+  {
+    name: { ...nameSchema, optional: true, notEmpty: undefined },
+    date_of_birth: { ...dateOfBirthSchema, optional: true },
+    bio: {
+      optional: true,
+      isString: true,
+      trim: true,
+      isLength: {
+        options: {
+          min: 1,
+          max: 200
+        }
+      }
+    },
+    location: {
+      optional: true,
+      isString: true,
+      trim: true,
+      isLength: {
+        options: {
+          min: 1,
+          max: 200
+        }
+      }
+    },
+    website: {
+      optional: true,
+      isString: true,
+      trim: true,
+      isLength: {
+        options: {
+          min: 1,
+          max: 200
+        }
+      }
+    },
+    username: {
+      optional: true,
+      isString: true,
+      trim: true,
+      isLength: {
+        options: {
+          min: 1,
+          max: 50
+        }
+      }
+    },
+    avatar: imageSchema,
+    cover_photo: imageSchema
   },
   ['body']
 );
@@ -317,3 +408,4 @@ export const verifyForgotPasswordValidator = validate(
   verifyForgotPasswordSchema
 );
 export const resetPasswordValidator = validate(resetPasswordSchema);
+export const updateInfoValidator = validate(updateInfoSchema);

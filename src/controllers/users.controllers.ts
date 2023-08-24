@@ -10,6 +10,7 @@ import {
   RegisterRequestBody,
   ResetPasswordRequestBody,
   TokenPayload,
+  UpdateInfoRequestBody,
   VerifyEmailRequestBody,
   VerifyForgotPasswordRequestBody
 } from '~/models/requests/User.requests';
@@ -22,8 +23,11 @@ export const loginController = async (
   res: Response
 ) => {
   const { user } = req;
-  const { _id: user_id } = user as { _id: ObjectId };
-  const result = await usersService.login(user_id.toString());
+  const { _id, verify } = user as User;
+  const result = await usersService.login({
+    user_id: (_id as ObjectId).toString(),
+    verify
+  });
   return res.json({ message: 'Login successfully', result });
 };
 
@@ -58,7 +62,7 @@ export const verifyEmailController = async (
   }
 
   // Đã verify rồi thì không báo lỗi -> trả về status OK với messsage đã verify rồi
-  if (!user.email_verify_token) {
+  if (user.verify === UserVerifyStatus.Verified) {
     return res.json({ message: 'Email already verified' });
   }
 
@@ -93,10 +97,11 @@ export const forgotPasswordController = async (
   req: Request<ParamsDictionary, any, ForgotPasswordRequestBody>,
   res: Response
 ) => {
-  const { _id } = req.user as User;
-  const result = await usersService.forgotPassword(
-    (_id as ObjectId).toString()
-  );
+  const { _id, verify } = req.user as User;
+  const result = await usersService.forgotPassword({
+    user_id: (_id as ObjectId).toString(),
+    verify
+  });
   return res.json(result);
 };
 
@@ -124,4 +129,15 @@ export const getInfoController = async (
   const { user_id } = req.decoded_authorization as TokenPayload;
   const result = await usersService.getInfo(user_id);
   return res.json({ message: 'Get info success', result });
+};
+
+export const updateInfoController = async (
+  req: Request<ParamsDictionary, any, UpdateInfoRequestBody>,
+  res: Response
+) => {
+  type T = keyof UpdateInfoRequestBody;
+  const { body } = req;
+  const { user_id } = req.decoded_authorization as TokenPayload;
+  const result = await usersService.updateInfo(user_id, body);
+  return res.json({ message: 'Update info success', result });
 };

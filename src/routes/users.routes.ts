@@ -7,9 +7,11 @@ import {
   registerController,
   resendVerifyEmailController,
   resetPasswordController,
+  updateInfoController,
   verifyEmailController,
   verifyForgotPasswordController
 } from '~/controllers/users.controllers';
+import { filterMiddleware } from '~/middlewares/common.middlewares';
 import {
   accessTokenValidator,
   forgotPasswordValidator,
@@ -17,9 +19,12 @@ import {
   refreshTokenValidator,
   registerValidator,
   resetPasswordValidator,
+  updateInfoValidator,
+  verifiedUserValidator,
   verifyEmailTokenValidator,
   verifyForgotPasswordValidator
 } from '~/middlewares/users.middlewares';
+import { UpdateInfoRequestBody } from '~/models/requests/User.requests';
 import { wrapRequestHandler } from '~/utils/handlers';
 
 const usersRouter = Router();
@@ -114,14 +119,39 @@ usersRouter.post(
 
 /**
  * get user info
- * Path: /get-info
+ * Path: /info
  * Method: GET
  * Header: { Authorization: Bearer <access_token> }
  */
 usersRouter.get(
-  '/get-info',
+  '/info',
   accessTokenValidator,
   wrapRequestHandler(getInfoController)
+);
+
+/**
+ * update user info
+ * Path: /update-info
+ * Method: PUT
+ * Header: { Authorization: Bearer <access_token> }
+ * Body: { user: User }
+ */
+usersRouter.patch(
+  '/info',
+  accessTokenValidator,
+  verifiedUserValidator,
+  updateInfoValidator,
+  filterMiddleware<UpdateInfoRequestBody>([
+    'name',
+    'date_of_birth',
+    'bio',
+    'location',
+    'website',
+    'username',
+    'avatar',
+    'cover_photo'
+  ]),
+  wrapRequestHandler(updateInfoController)
 );
 
 export default usersRouter;

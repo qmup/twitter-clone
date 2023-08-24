@@ -54,3 +54,7 @@ export interface UpdateInfoRequestBody {
 export interface GetProfileRequestParam {
   username: string;
 }
+
+export interface FollowRequestBody {
+  followed_user_id: string;
+}

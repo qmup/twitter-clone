@@ -4,6 +4,7 @@ import { ObjectId } from 'mongodb';
 import { UserVerifyStatus } from '~/constants/enums';
 import HTTP_STATUS from '~/constants/httpStatus';
 import {
+  FollowRequestBody,
   ForgotPasswordRequestBody,
   GetProfileRequestParam,
   LoginRequestBody,
@@ -149,4 +150,14 @@ export const getProfileController = async (
   const { username } = req.params;
   const result = await usersService.getProfile(username);
   return res.json({ message: 'Get profile success', result });
+};
+
+export const followController = async (
+  req: Request<ParamsDictionary, any, FollowRequestBody>,
+  res: Response
+) => {
+  const { user_id } = req.decoded_authorization as TokenPayload;
+  const { followed_user_id } = req.body;
+  const result = await usersService.follow(user_id, followed_user_id);
+  return res.json(result);
 };

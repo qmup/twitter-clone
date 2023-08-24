@@ -331,7 +331,6 @@ export const verifiedUserValidator = (
   next: NextFunction
 ) => {
   const { verify } = req.decoded_authorization as TokenPayload;
-  console.log('🚀 ~ file: users.middlewares.ts:318 ~ verify:', verify);
 
   if (verify !== UserVerifyStatus.Verified) {
     return next(
@@ -398,6 +397,31 @@ const updateInfoSchema = checkSchema(
   ['body']
 );
 
+const followSchema = checkSchema(
+  {
+    followed_user_id: {
+      custom: {
+        options: async (value: string, { req }) => {
+          if (!ObjectId.isValid(value)) {
+            throw new ErrorWithStatus({
+              message: 'ObjectId is invalid',
+              status: HTTP_STATUS.NOT_FOUND
+            });
+          }
+          const followed_user = usersService.getInfo(value);
+          if (!followed_user) {
+            throw new ErrorWithStatus({
+              message: 'User not found',
+              status: HTTP_STATUS.NOT_FOUND
+            });
+          }
+        }
+      }
+    }
+  },
+  ['body']
+);
+
 export const loginValidator = validate(loginSchema);
 export const registerValidator = validate(registerSchema);
 export const accessTokenValidator = validate(accessTokenSchema);
@@ -409,3 +433,4 @@ export const verifyForgotPasswordValidator = validate(
 );
 export const resetPasswordValidator = validate(resetPasswordSchema);
 export const updateInfoValidator = validate(updateInfoSchema);
+export const followValidator = validate(followSchema);

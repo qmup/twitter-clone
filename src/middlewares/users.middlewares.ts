@@ -414,10 +414,6 @@ const updateInfoSchema = checkSchema(
           if (user) {
             throw new Error('Username existed');
           }
-          console.log(
-            '🚀 ~ file: users.middlewares.ts:415 ~ options: ~ user:',
-            user
-          );
           return true;
         }
       }
@@ -442,6 +438,15 @@ const unfollowSchema = checkSchema(
   ['params']
 );
 
+const changePasswordSchema = checkSchema(
+  {
+    old_password: passwordSchema,
+    password: passwordSchema,
+    confirm_password: confirmPasswordSchema
+  },
+  ['body']
+);
+
 export const loginValidator = validate(loginSchema);
 export const registerValidator = validate(registerSchema);
 export const accessTokenValidator = validate(accessTokenSchema);
@@ -455,3 +460,4 @@ export const resetPasswordValidator = validate(resetPasswordSchema);
 export const updateInfoValidator = validate(updateInfoSchema);
 export const followValidator = validate(followSchema);
 export const unfollowValidator = validate(unfollowSchema);
+export const changePasswordValidator = validate(changePasswordSchema);

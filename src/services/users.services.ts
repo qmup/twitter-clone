@@ -323,6 +323,36 @@ class UsersService {
     });
     return { message: 'Unfollowed success' };
   }
+
+  async changePassword(
+    user_id: string,
+    old_password: string,
+    new_password: string
+  ) {
+    const user = await databaseService.users.findOne({
+      _id: new ObjectId(user_id),
+      password: hashPassword(old_password)
+    });
+
+    if (!user) {
+      return { message: 'Current password is not correct' };
+    }
+
+    await databaseService.users.updateOne(
+      {
+        user_id: new ObjectId(user_id)
+      },
+      [
+        {
+          $set: {
+            password: hashPassword(new_password),
+            updated_at: '$$NOW'
+          }
+        }
+      ]
+    );
+    return { message: 'Change password success' };
+  }
 }
 
 const usersService = new UsersService();

@@ -404,10 +404,21 @@ const updateInfoSchema = checkSchema(
       optional: true,
       isString: true,
       trim: true,
-      isLength: {
-        options: {
-          min: 1,
-          max: 50
+      custom: {
+        options: async (value: string, { req }) => {
+          if (!/^(?![0-9]+$)[A-Za-z0-9_]{4,15}$/.test(value)) {
+            throw new Error('Username invalid');
+          }
+
+          const user = await databaseService.users.findOne({ username: value });
+          if (user) {
+            throw new Error('Username existed');
+          }
+          console.log(
+            '🚀 ~ file: users.middlewares.ts:415 ~ options: ~ user:',
+            user
+          );
+          return true;
         }
       }
     },

@@ -22,6 +22,15 @@ import { User } from '~/models/schemas/User.schema';
 import databaseService from '~/services/database.services';
 import usersService from '~/services/users.services';
 
+export const oauthController = async (req: Request, res: Response) => {
+  const { code } = req.query;
+  const { access_token, newUser, refresh_token } = await usersService.oauth(
+    code as string
+  );
+  const urlRedirect = `${process.env.CLIENT_REDIRECT_URI}?access_token=${access_token}&refresh_token=${refresh_token}&newUser=${newUser}`;
+  return res.redirect(urlRedirect);
+};
+
 export const loginController = async (
   req: Request<ParamsDictionary, any, LoginRequestBody>,
   res: Response
@@ -32,7 +41,7 @@ export const loginController = async (
     user_id: (_id as ObjectId).toString(),
     verify
   });
-  return res.json({ message: 'Login successfully', result });
+  return res.json({ message: 'Login success', result });
 };
 
 export const registerController = async (
@@ -40,7 +49,7 @@ export const registerController = async (
   res: Response
 ) => {
   const result = await usersService.register(req.body);
-  return res.json({ message: 'Register successfully', result });
+  return res.json({ message: 'Register success', result });
 };
 
 export const logoutController = async (

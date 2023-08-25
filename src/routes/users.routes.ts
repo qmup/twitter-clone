@@ -7,6 +7,7 @@ import {
   getProfileController,
   loginController,
   logoutController,
+  oauthController,
   registerController,
   resendVerifyEmailController,
   resetPasswordController,
@@ -35,6 +36,26 @@ import { UpdateInfoRequestBody } from '~/models/requests/User.requests';
 import { wrapRequestHandler } from '~/utils/handlers';
 
 const usersRouter = Router();
+
+/**
+ * Oauth Google
+ * Path: /oauth/google
+ * Method: GET
+ */
+
+usersRouter.get('/oauth/google', wrapRequestHandler(oauthController));
+
+/**
+ * Register a new user
+ * Path: /register
+ * Method: POST
+ * Body: { name: string; email: string; password: string; date_of_birth: ISO8601 }
+ */
+usersRouter.post(
+  '/register',
+  registerValidator,
+  wrapRequestHandler(registerController)
+);
 
 usersRouter.post('/login', loginValidator, wrapRequestHandler(loginController));
 

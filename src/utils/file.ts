@@ -12,7 +12,7 @@ export const initFolder = () => {
   }
 };
 
-export const handleUploadSingleImage = (req: Request) => {
+export const handleuploadImage = (req: Request) => {
   const form = formidable({
     uploadDir: UPLOAD_TEMP_DIR,
     maxFiles: 1,

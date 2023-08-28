@@ -4,11 +4,11 @@ import path from 'path';
 import sharp from 'sharp';
 import { isProduction } from '~/constants/config';
 import { UPLOAD_DIR } from '~/constants/dir';
-import { getNameFromFullname, handleUploadSingleImage } from '~/utils/file';
+import { getNameFromFullname, handleuploadImage } from '~/utils/file';
 
 class MediasService {
-  async handleUploadSingleImage(req: Request) {
-    const file = await handleUploadSingleImage(req);
+  async handleuploadImage(req: Request) {
+    const file = await handleuploadImage(req);
     const newName = getNameFromFullname(file.newFilename);
     const newPath = path.resolve(UPLOAD_DIR, `${newName}.jpg`);
     await sharp(file.filepath).jpeg().toFile(newPath);

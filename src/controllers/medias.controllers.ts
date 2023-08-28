@@ -3,12 +3,12 @@ import path from 'path';
 import { UPLOAD_DIR } from '~/constants/dir';
 import mediasService from '~/services/medias.services';
 
-export const uploadSingleImageController = async (
+export const uploadImageController = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const result = await mediasService.handleUploadSingleImage(req);
+  const result = await mediasService.handleuploadImage(req);
 
   return res.json({ result, message: 'Upload success' });
 };

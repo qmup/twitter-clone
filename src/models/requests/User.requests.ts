@@ -6,6 +6,8 @@ export interface TokenPayload extends JwtPayload {
   user_id: string;
   token_type: string;
   verify: UserVerifyStatus;
+  exp: number;
+  iat: number;
 }
 export interface RegisterRequestBody {
   name: string;
@@ -68,3 +70,7 @@ export interface ChangePasswordRequestBody {
   password: string;
   confirm_password: string;
 }
+
+export type RefreshTokenRequestBody = {
+  refresh_token: string;
+};

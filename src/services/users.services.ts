@@ -11,7 +11,7 @@ import { Follower } from '~/models/schemas/Follower.schema';
 import RefreshToken from '~/models/schemas/RefreshToken.schema';
 import { User } from '~/models/schemas/User.schema';
 import { hashPassword } from '~/utils/crypto';
-import { signToken } from '~/utils/jwt';
+import { signToken, verifyToken } from '~/utils/jwt';
 import { generateProjection } from '~/utils/utils';
 import databaseService from './database.services';
 
@@ -38,14 +38,22 @@ class UsersService {
 
   private signRefreshToken({
     user_id,
-    verify
+    verify,
+    exp
   }: {
     user_id: string;
     verify: UserVerifyStatus;
+    exp?: number;
   }) {
+    if (exp) {
+      return signToken({
+        privateKey: process.env.JWT_SECRET_REFRESH_TOKEN as string,
+        payload: { user_id, token_type: TokenType.RefreshToken, verify, exp }
+      });
+    }
     return signToken({
       privateKey: process.env.JWT_SECRET_REFRESH_TOKEN as string,
-      payload: { user_id, token_type: TokenType.RefreshToken },
+      payload: { user_id, token_type: TokenType.RefreshToken, verify },
       options: {
         expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN
       }
@@ -61,7 +69,7 @@ class UsersService {
   }) {
     return signToken({
       privateKey: process.env.JWT_SECRET_EMAIL_VERIFY_TOKEN as string,
-      payload: { user_id, token_type: TokenType.VerifyEmailToken },
+      payload: { user_id, token_type: TokenType.VerifyEmailToken, verify },
       options: {
         expiresIn: process.env.EMAIL_VERIFY_TOKEN_EXPIRES_IN
       }
@@ -87,10 +95,17 @@ class UsersService {
   }) {
     return signToken({
       privateKey: process.env.JWT_SECRET_FORGOT_PASSWORD_TOKEN as string,
-      payload: { user_id, token_type: TokenType.VerifyEmailToken },
+      payload: { user_id, token_type: TokenType.VerifyEmailToken, verify },
       options: {
         expiresIn: process.env.FORGOT_PASSWORD_TOKEN_EXPIRES_IN
       }
+    });
+  }
+
+  private decodeRefreshToken(refresh_token: string) {
+    return verifyToken({
+      token: refresh_token,
+      privateKey: process.env.JWT_SECRET_REFRESH_TOKEN as string
     });
   }
 
@@ -118,8 +133,15 @@ class UsersService {
       verify: UserVerifyStatus.Unverified
     });
 
+    const { exp, iat } = await this.decodeRefreshToken(refresh_token);
+
     await databaseService.refreshTokens.insertOne(
-      new RefreshToken({ token: refresh_token, user_id: new ObjectId(user_id) })
+      new RefreshToken({
+        token: refresh_token,
+        user_id: new ObjectId(user_id),
+        iat,
+        exp
+      })
     );
 
     return {
@@ -204,8 +226,11 @@ class UsersService {
           user_id: user._id.toString(),
           verify: UserVerifyStatus.Verified
         });
+
+      const { exp, iat } = await this.decodeRefreshToken(refresh_token);
+
       await databaseService.refreshTokens.insertOne(
-        new RefreshToken({ user_id: user._id, token: refresh_token })
+        new RefreshToken({ user_id: user._id, token: refresh_token, exp, iat })
       );
       return { access_token, refresh_token, newUser: false };
     } else {
@@ -233,8 +258,15 @@ class UsersService {
       verify
     });
 
+    const { exp, iat } = await this.decodeRefreshToken(refresh_token);
+
     await databaseService.refreshTokens.insertOne(
-      new RefreshToken({ token: refresh_token, user_id: new ObjectId(user_id) })
+      new RefreshToken({
+        token: refresh_token,
+        user_id: new ObjectId(user_id),
+        iat,
+        exp
+      })
     );
 
     return {
@@ -430,6 +462,49 @@ class UsersService {
       ]
     );
     return { message: 'Change password success' };
+  }
+
+  async refreshToken({
+    user_id,
+    verify,
+    refresh_token: old_refresh_token,
+    exp
+  }: {
+    user_id: string;
+    verify: UserVerifyStatus;
+    refresh_token: string;
+    exp: number;
+  }) {
+    const [access_token, refresh_token] = await Promise.all([
+      this.signAccessToken({
+        user_id,
+        verify
+      }),
+      this.signRefreshToken({
+        user_id,
+        verify,
+        exp
+      }),
+      databaseService.refreshTokens.deleteOne({
+        token: old_refresh_token
+      })
+    ]);
+
+    const decoded_refresh_token = await this.decodeRefreshToken(refresh_token);
+
+    await databaseService.refreshTokens.insertOne(
+      new RefreshToken({
+        token: refresh_token,
+        user_id: new ObjectId(user_id),
+        iat: decoded_refresh_token.iat,
+        exp: decoded_refresh_token.exp
+      })
+    );
+
+    return {
+      access_token,
+      refresh_token
+    };
   }
 }
 

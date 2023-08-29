@@ -8,6 +8,7 @@ import {
   loginController,
   logoutController,
   oauthController,
+  refreshTokenController,
   registerController,
   resendVerifyEmailController,
   resetPasswordController,
@@ -233,6 +234,19 @@ usersRouter.patch(
   verifiedUserValidator,
   changePasswordValidator,
   wrapRequestHandler(changePasswordController)
+);
+
+/**
+ * Refresh token
+ * Path: /refresh-token
+ * Method: POST
+ * Header: { Authorization: Bearer <access_token> }
+ * Body: { refresh_token: string }
+ */
+usersRouter.post(
+  '/refresh-token',
+  refreshTokenValidator,
+  wrapRequestHandler(refreshTokenController)
 );
 
 export default usersRouter;

@@ -9,7 +9,13 @@ import { initFolder } from './utils/file';
 
 const port = 4000;
 const app = express();
-databaseService.connect();
+
+const connectIndexDb = async () => {
+  await databaseService.connect();
+  databaseService.indexUsers();
+};
+
+connectIndexDb();
 
 // create folder uploads
 initFolder();

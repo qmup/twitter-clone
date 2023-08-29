@@ -10,6 +10,7 @@ import {
   GetProfileRequestParam,
   LoginRequestBody,
   LogoutRequestBody,
+  RefreshTokenRequestBody,
   RegisterRequestBody,
   ResetPasswordRequestBody,
   TokenPayload,
@@ -195,4 +196,19 @@ export const changePasswordController = async (
     password
   );
   return res.json(result);
+};
+
+export const refreshTokenController = async (
+  req: Request<ParamsDictionary, any, RefreshTokenRequestBody>,
+  res: Response
+) => {
+  const { refresh_token } = req.body;
+  const { user_id, verify, exp } = req.decoded_refresh_token as TokenPayload;
+  const result = await usersService.refreshToken({
+    user_id,
+    verify,
+    refresh_token,
+    exp
+  });
+  return res.json({ message: 'Refresh token success', result });
 };

@@ -30,6 +30,12 @@ class DatabaseService {
     return this.db.collection(process.env.DB_USERS_COLLECTION as string);
   }
 
+  indexUsers() {
+    this.users.createIndex({ email: 1, password: 1 });
+    this.users.createIndex({ email: 1 }, { unique: true });
+    this.users.createIndex({ username: 1 }, { unique: true });
+  }
+
   get refreshTokens(): Collection<RefreshToken> {
     return this.db.collection(
       process.env.DB_REFRESH_TOKENS_COLLECTION as string

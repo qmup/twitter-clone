@@ -16,6 +16,7 @@ const connectIndexDb = async () => {
   databaseService.indexUsers();
   databaseService.indexRefreshTokens();
   databaseService.indexFollowers();
+  databaseService.indexHashtags();
 };
 
 connectIndexDb();

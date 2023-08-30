@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import { Collection, Db, MongoClient } from 'mongodb';
 import { Follower } from '~/models/schemas/Follower.schema';
+import Hashtag from '~/models/schemas/Hashtag.schema';
 import RefreshToken from '~/models/schemas/RefreshToken.schema';
 import Tweet from '~/models/schemas/Tweet.schema';
 import { User } from '~/models/schemas/User.schema';
@@ -84,6 +85,17 @@ class DatabaseService {
     // if (!isExistedIndex) {
     //   this.followers.createIndex({ user_id: 1, follower_id: 1 });
     // }
+  }
+
+  get hashtags(): Collection<Hashtag> {
+    return this.db.collection(process.env.DB_HASHTAGS_COLLECTION as string);
+  }
+
+  async indexHashtags() {
+    const isExistedIndex = this.followers.indexExists(['name_1']);
+    if (!isExistedIndex) {
+      this.followers.createIndex({ name: 1 });
+    }
   }
 }
 

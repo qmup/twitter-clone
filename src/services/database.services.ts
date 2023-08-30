@@ -30,10 +30,18 @@ class DatabaseService {
     return this.db.collection(process.env.DB_USERS_COLLECTION as string);
   }
 
-  indexUsers() {
-    this.users.createIndex({ email: 1, password: 1 });
-    this.users.createIndex({ email: 1 }, { unique: true });
-    this.users.createIndex({ username: 1 }, { unique: true });
+  async indexUsers() {
+    const isExistedIndex = this.users.indexExists([
+      'email_1',
+      'email_1_password_1',
+      'user_id_1_follower_id_1',
+      'username_1'
+    ]);
+    if (!isExistedIndex) {
+      this.users.createIndex({ email: 1, password: 1 });
+      this.users.createIndex({ email: 1 }, { unique: true });
+      this.users.createIndex({ username: 1 }, { unique: true });
+    }
   }
 
   get refreshTokens(): Collection<RefreshToken> {
@@ -42,8 +50,26 @@ class DatabaseService {
     );
   }
 
+  async indexRefreshTokens() {
+    const isExistedIndex = this.refreshTokens.indexExists(['exp_1', 'token_1']);
+    if (!isExistedIndex) {
+      this.refreshTokens.createIndex({ token: 1 });
+      // background task trong mongodb, run every minute to check -> automatically remove expired deocument
+      this.refreshTokens.createIndex({ exp: 1 }, { expireAfterSeconds: 0 });
+    }
+  }
+
   get followers(): Collection<Follower> {
     return this.db.collection(process.env.DB_FOLLOWERS_COLLECTION as string);
+  }
+
+  async indexFollowers() {
+    const isExistedIndex = this.followers.indexExists([
+      'user_id_1_follower_id_1'
+    ]);
+    if (!isExistedIndex) {
+      this.followers.createIndex({ user_id: 1, follower_id: 1 });
+    }
   }
 }
 

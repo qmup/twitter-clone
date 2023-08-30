@@ -13,6 +13,8 @@ const app = express();
 const connectIndexDb = async () => {
   await databaseService.connect();
   databaseService.indexUsers();
+  databaseService.indexRefreshTokens();
+  databaseService.indexFollowers();
 };
 
 connectIndexDb();

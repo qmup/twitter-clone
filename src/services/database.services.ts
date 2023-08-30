@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import { Collection, Db, MongoClient } from 'mongodb';
 import { Follower } from '~/models/schemas/Follower.schema';
 import RefreshToken from '~/models/schemas/RefreshToken.schema';
+import Tweet from '~/models/schemas/Tweet.schema';
 import { User } from '~/models/schemas/User.schema';
 
 dotenv.config();
@@ -70,6 +71,19 @@ class DatabaseService {
     if (!isExistedIndex) {
       this.followers.createIndex({ user_id: 1, follower_id: 1 });
     }
+  }
+
+  get tweets(): Collection<Tweet> {
+    return this.db.collection(process.env.DB_TWEETS_COLLECTION as string);
+  }
+
+  async indexTweets() {
+    // const isExistedIndex = this.followers.indexExists([
+    //   'user_id_1_follower_id_1'
+    // ]);
+    // if (!isExistedIndex) {
+    //   this.followers.createIndex({ user_id: 1, follower_id: 1 });
+    // }
   }
 }
 

@@ -6,7 +6,7 @@ export interface TweetRequestBody {
   audience: TweetAudience;
   content: string;
   parent_id: null | string;
-  hashtags: string;
-  mentions: string;
+  hashtags: string[];
+  mentions: string[];
   medias: Media[];
 }

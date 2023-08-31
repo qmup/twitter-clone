@@ -18,6 +18,7 @@ type UserType = {
   username?: string;
   avatar?: string;
   cover_photo?: string;
+  twitter_circle?: ObjectId[];
 };
 
 export class User {
@@ -37,6 +38,7 @@ export class User {
   username: string;
   avatar: string;
   cover_photo: string;
+  twitter_circle: ObjectId[];
 
   constructor(user: UserType) {
     const date = new Date();
@@ -56,5 +58,6 @@ export class User {
     this.username = user.username || '';
     this.avatar = user.avatar || '';
     this.cover_photo = user.cover_photo || '';
+    this.twitter_circle = user.twitter_circle || [];
   }
 }

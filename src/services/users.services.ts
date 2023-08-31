@@ -127,6 +127,7 @@ class UsersService {
         password: hashPassword(payload.password)
       })
     );
+    console.log('email_verify_token:', email_verify_token);
 
     const [access_token, refresh_token] = await this.signAccessAndRefreshToken({
       user_id: user_id.toString(),
@@ -341,7 +342,7 @@ class UsersService {
     );
     // Gửi email kèm đường link đến email cho người dùng
     // Path: /reset-password?token=token
-    console.log(forgot_password_token);
+    console.log('forgot_password_token', forgot_password_token);
     return { message: 'Check your email to reset password' };
   }
 

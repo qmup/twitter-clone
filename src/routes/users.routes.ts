@@ -222,7 +222,7 @@ usersRouter.delete(
 );
 
 /**
- * unfollow someone
+ * Change password
  * Path: /change-password
  * Method: PATCH
  * Header: { Authorization: Bearer <access_token> }

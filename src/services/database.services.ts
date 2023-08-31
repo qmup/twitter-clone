@@ -1,7 +1,9 @@
 import dotenv from 'dotenv';
 import { Collection, Db, MongoClient } from 'mongodb';
+import Bookmark from '~/models/schemas/Bookmark.schema';
 import { Follower } from '~/models/schemas/Follower.schema';
 import Hashtag from '~/models/schemas/Hashtag.schema';
+import Like from '~/models/schemas/Like.schema';
 import RefreshToken from '~/models/schemas/RefreshToken.schema';
 import Tweet from '~/models/schemas/Tweet.schema';
 import { User } from '~/models/schemas/User.schema';
@@ -96,6 +98,14 @@ class DatabaseService {
     if (!isExistedIndex) {
       this.followers.createIndex({ name: 1 });
     }
+  }
+
+  get bookmarks(): Collection<Bookmark> {
+    return this.db.collection(process.env.DB_BOOKMARKS_COLLECTION as string);
+  }
+
+  get likes(): Collection<Like> {
+    return this.db.collection(process.env.DB_LIKES_COLLECTION as string);
   }
 }
 

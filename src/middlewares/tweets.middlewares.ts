@@ -2,7 +2,10 @@ import { ParamSchema, checkSchema } from 'express-validator';
 import { isEmpty } from 'lodash';
 import { ObjectId } from 'mongodb';
 import { MediaType, TweetAudience, TweetType } from '~/constants/enums';
+import HTTP_STATUS from '~/constants/httpStatus';
+import { ErrorWithStatus } from '~/models/Errors';
 import { TweetRequestBody } from '~/models/requests/Tweet.requests';
+import tweetsService from '~/services/tweets.services';
 import { RequestBodySchema, numberEnumToArray } from '~/utils/commons';
 import { validate } from '~/utils/validation';
 
@@ -116,4 +119,25 @@ const createTweetSchema = checkSchema(
   ['body']
 );
 
+const tweetIdSchema = checkSchema(
+  {
+    tweet_id: {
+      isMongoId: true,
+      custom: {
+        options: async (value, { req }) => {
+          const isExisted = await tweetsService.findTweetById(value);
+          if (!isExisted) {
+            throw new ErrorWithStatus({
+              status: HTTP_STATUS.BAD_GATEWAY,
+              message: 'Tweet not found'
+            });
+          }
+        }
+      }
+    }
+  },
+  ['body', 'params']
+);
+
 export const createTweetValidator = validate(createTweetSchema);
+export const tweetIdValidator = validate(tweetIdSchema);

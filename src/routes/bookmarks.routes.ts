@@ -3,10 +3,7 @@ import {
   bookmarkController,
   unbookmarkController
 } from '~/controllers/bookmarks.controllers';
-import {
-  bookmarkValidator,
-  unbookmarkValidator
-} from '~/middlewares/bookmarks.middlewares';
+import { tweetIdValidator } from '~/middlewares/tweets.middlewares';
 import {
   accessTokenValidator,
   verifiedUserValidator
@@ -25,7 +22,7 @@ bookmarksRouter.post(
   '',
   accessTokenValidator,
   verifiedUserValidator,
-  bookmarkValidator,
+  tweetIdValidator,
   wrapRequestHandler(bookmarkController)
 );
 
@@ -38,7 +35,7 @@ bookmarksRouter.delete(
   '/tweets/:tweet_id',
   accessTokenValidator,
   verifiedUserValidator,
-  unbookmarkValidator,
+  tweetIdValidator,
   wrapRequestHandler(unbookmarkController)
 );
 

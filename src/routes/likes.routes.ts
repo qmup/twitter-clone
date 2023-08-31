@@ -3,10 +3,7 @@ import {
   likeController,
   unlikeController
 } from '~/controllers/likes.controllers';
-import {
-  likeValidator,
-  unlikeValidator
-} from '~/middlewares/likes.middlewares';
+import { tweetIdValidator } from '~/middlewares/tweets.middlewares';
 import {
   accessTokenValidator,
   verifiedUserValidator
@@ -25,7 +22,7 @@ likesRouter.post(
   '',
   accessTokenValidator,
   verifiedUserValidator,
-  likeValidator,
+  tweetIdValidator,
   wrapRequestHandler(likeController)
 );
 
@@ -39,7 +36,7 @@ likesRouter.delete(
   '/tweets/:tweet_id',
   accessTokenValidator,
   verifiedUserValidator,
-  unlikeValidator,
+  tweetIdValidator,
   wrapRequestHandler(unlikeController)
 );
 

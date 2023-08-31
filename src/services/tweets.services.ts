@@ -38,6 +38,10 @@ class TweetsService {
       _id: new ObjectId(result.insertedId)
     });
   }
+
+  findTweetById(tweet_id: string) {
+    return databaseService.tweets.findOne({ _id: new ObjectId(tweet_id) });
+  }
 }
 
 const tweetsService = new TweetsService();

@@ -1,10 +1,19 @@
+import { NextFunction, Request, Response } from 'express';
 import { ParamSchema, checkSchema } from 'express-validator';
 import { isEmpty } from 'lodash';
 import { ObjectId } from 'mongodb';
-import { MediaType, TweetAudience, TweetType } from '~/constants/enums';
+import {
+  MediaType,
+  TweetAudience,
+  TweetType,
+  UserVerifyStatus
+} from '~/constants/enums';
 import HTTP_STATUS from '~/constants/httpStatus';
 import { ErrorWithStatus } from '~/models/Errors';
 import { TweetRequestBody } from '~/models/requests/Tweet.requests';
+import { TokenPayload } from '~/models/requests/User.requests';
+import Tweet from '~/models/schemas/Tweet.schema';
+import databaseService from '~/services/database.services';
 import tweetsService from '~/services/tweets.services';
 import { RequestBodySchema, numberEnumToArray } from '~/utils/commons';
 import { validate } from '~/utils/validation';
@@ -125,19 +134,69 @@ const tweetIdSchema = checkSchema(
       isMongoId: true,
       custom: {
         options: async (value, { req }) => {
-          const isExisted = await tweetsService.findTweetById(value);
-          if (!isExisted) {
+          const tweet = await tweetsService.findTweetById(value);
+          if (!tweet) {
             throw new ErrorWithStatus({
               status: HTTP_STATUS.BAD_GATEWAY,
               message: 'Tweet not found'
             });
           }
+          req.tweet = tweet;
         }
       }
     }
   },
   ['body', 'params']
 );
+export const audienceValidator = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const tweet = req.tweet as Tweet;
+  if (tweet.audience === TweetAudience.TwitterCircle) {
+    // if logged in, must have decoded_authorization
+    if (!req.decoded_authorization) {
+      throw new ErrorWithStatus({
+        status: HTTP_STATUS.UNAUTHORIZED,
+        message: 'Access token is required'
+      });
+    }
+    // check whether author's account is valid
+    const author = await databaseService.users.findOne({
+      _id: new ObjectId(tweet.user_id)
+    });
+    console.log('🚀 ~ file: tweets.middlewares.ts:169 ~ author:', author);
+    if (!author || author.verify === UserVerifyStatus.Banned) {
+      throw new ErrorWithStatus({
+        status: HTTP_STATUS.NOT_FOUND,
+        message: 'User not found'
+      });
+    }
+    const { user_id } = req.decoded_authorization as TokenPayload;
+    // check whether this user is included in twitter circle
+    const isInTwitterCircle = author.twitter_circle.some((user_circle_id) =>
+      user_circle_id.equals(user_id)
+    );
+    console.log('🚀 ~ file: tweets.middlewares.ts:180 ~ user_id:', user_id);
+    console.log(
+      '🚀 ~ file: tweets.middlewares.ts:181 ~ twitter_circle:',
+      author.twitter_circle
+    );
+    console.log(
+      '🚀 ~ file: tweets.middlewares.ts:181 ~ twitter_circle:',
+      author._id,
+      author._id.equals(user_id)
+    );
+    if (!isInTwitterCircle && !author._id.equals(user_id)) {
+      throw new ErrorWithStatus({
+        status: HTTP_STATUS.FORBIDDEN,
+        message: 'Tweet is not public'
+      });
+    }
+  }
+  next();
+};
 
 export const createTweetValidator = validate(createTweetSchema);
 export const tweetIdValidator = validate(tweetIdSchema);

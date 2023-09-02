@@ -4,11 +4,13 @@ import {
   getTweetController
 } from '~/controllers/tweets.controllers';
 import {
+  audienceValidator,
   createTweetValidator,
   tweetIdValidator
 } from '~/middlewares/tweets.middlewares';
 import {
   accessTokenValidator,
+  isUserLoggedInValidator,
   verifiedUserValidator
 } from '~/middlewares/users.middlewares';
 import { wrapRequestHandler } from '~/utils/handlers';
@@ -38,6 +40,9 @@ tweetsRouter.post(
 tweetsRouter.get(
   '/:tweet_id',
   tweetIdValidator,
+  isUserLoggedInValidator(accessTokenValidator),
+  isUserLoggedInValidator(verifiedUserValidator),
+  wrapRequestHandler(audienceValidator),
   wrapRequestHandler(getTweetController)
 );
 

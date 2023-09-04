@@ -236,9 +236,6 @@ const tweetIdSchema = checkSchema(
                         }
                       }
                     }
-                  },
-                  views: {
-                    $add: ['$user_views', '$guest_views']
                   }
                 }
               },

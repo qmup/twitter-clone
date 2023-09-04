@@ -24,5 +24,12 @@ export const getTweetController = async (
   // normally do query here
   // however, already findOne in tweetIdValidator
   // -> do in tweetIdValidator
-  return res.json({ message: 'Get tweet success', result: req.tweet });
+  const { guest_views, user_views } = await tweetsService.increaseView(
+    req.params.tweet_id,
+    req.decoded_authorization?.user_id
+  );
+
+  const result = { ...req.tweet, guest_views, user_views };
+
+  return res.json({ message: 'Get tweet success', result });
 };

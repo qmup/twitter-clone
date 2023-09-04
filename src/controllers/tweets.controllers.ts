@@ -21,7 +21,8 @@ export const getTweetController = async (
   req: Request<GetTweetRequestParams>,
   res: Response
 ) => {
-  const { tweet_id } = req.params;
-  const result = await tweetsService.findTweetById(tweet_id);
-  return res.json({ message: 'Get tweet success', result });
+  // normally do query here
+  // however, already findOne in tweetIdValidator
+  // -> do in tweetIdValidator
+  return res.json({ message: 'Get tweet success', result: req.tweet });
 };

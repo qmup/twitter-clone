@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   createTweetController,
+  getTweetChildrenController,
   getTweetController
 } from '~/controllers/tweets.controllers';
 import {
@@ -33,7 +34,7 @@ tweetsRouter.post(
 
 /**
  * Get tweet
- * Path: /
+ * Path: /:tweet_id
  * Method: GET
  * Header: { Authorization?: Bearer <access_token> }
  */
@@ -44,6 +45,22 @@ tweetsRouter.get(
   isUserLoggedInValidator(verifiedUserValidator),
   wrapRequestHandler(audienceValidator),
   wrapRequestHandler(getTweetController)
+);
+
+/**
+ * Get tweet children
+ * Path: /:tweet_id/children
+ * Method: GET
+ * Header: { Authorization?: Bearer <access_token> }
+ * Query: { limit: number, page: number, tweet_type: TweetType }
+ */
+tweetsRouter.get(
+  '/:tweet_id/children',
+  tweetIdValidator,
+  isUserLoggedInValidator(accessTokenValidator),
+  isUserLoggedInValidator(verifiedUserValidator),
+  wrapRequestHandler(audienceValidator),
+  wrapRequestHandler(getTweetChildrenController as any)
 );
 
 export default tweetsRouter;

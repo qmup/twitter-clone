@@ -322,7 +322,7 @@ class UsersService {
       { _id: new ObjectId(user_id) },
       { $set: { email_verify_token }, $currentDate: { updated_at: true } }
     );
-    console.log('🚀 email_verify_token:', email_verify_token);
+    console.log('email_verify_token:', email_verify_token);
     return { message: 'Send verify email success' };
   }
 

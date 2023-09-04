@@ -210,7 +210,7 @@ const tweetIdSchema = checkSchema(
                         input: '$tweet_children',
                         as: 'item',
                         cond: {
-                          $eq: ['$$item.type', 1]
+                          $eq: ['$$item.type', TweetType.Retweet]
                         }
                       }
                     }
@@ -221,7 +221,7 @@ const tweetIdSchema = checkSchema(
                         input: '$tweet_children',
                         as: 'item',
                         cond: {
-                          $eq: ['$$item.type', 2]
+                          $eq: ['$$item.type', TweetType.Comment]
                         }
                       }
                     }
@@ -232,7 +232,7 @@ const tweetIdSchema = checkSchema(
                         input: '$tweet_children',
                         as: 'item',
                         cond: {
-                          $eq: ['$$item.type', 3]
+                          $eq: ['$$item.type', TweetType.QuoteTweet]
                         }
                       }
                     }

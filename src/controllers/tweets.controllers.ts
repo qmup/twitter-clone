@@ -26,12 +26,13 @@ export const getTweetController = async (
   // normally do query here
   // however, already findOne in tweetIdValidator
   // -> do in tweetIdValidator
-  const { guest_views, user_views } = await tweetsService.increaseView(
-    req.params.tweet_id,
-    req.decoded_authorization?.user_id
-  );
+  const { guest_views, user_views, updated_at } =
+    await tweetsService.increaseView(
+      req.params.tweet_id,
+      req.decoded_authorization?.user_id
+    );
 
-  const result = { ...req.tweet, guest_views, user_views };
+  const result = { ...req.tweet, guest_views, user_views, updated_at };
 
   return res.json({ message: 'Get tweet success', result });
 };
@@ -42,12 +43,14 @@ export const getTweetChildrenController = async (
 ) => {
   const { limit, page, tweet_type } = req.query;
   const { tweet_id } = req.params;
+  const { user_id } = req.decoded_authorization as TokenPayload;
 
   const { total, tweets } = await tweetsService.getTweetChildren({
     tweet_id,
     tweet_type: Number(tweet_type) as TweetType,
     limit: Number(limit),
-    page: Number(page)
+    page: Number(page),
+    user_id
   });
 
   return res.json({

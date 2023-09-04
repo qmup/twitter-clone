@@ -7,6 +7,7 @@ import {
 import {
   audienceValidator,
   createTweetValidator,
+  getTweetChildrenValidator,
   tweetIdValidator
 } from '~/middlewares/tweets.middlewares';
 import {
@@ -60,7 +61,8 @@ tweetsRouter.get(
   isUserLoggedInValidator(accessTokenValidator),
   isUserLoggedInValidator(verifiedUserValidator),
   wrapRequestHandler(audienceValidator),
-  wrapRequestHandler(getTweetChildrenController as any)
+  wrapRequestHandler(getTweetChildrenValidator),
+  wrapRequestHandler(getTweetChildrenController)
 );
 
 export default tweetsRouter;

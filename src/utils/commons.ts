@@ -1,6 +1,6 @@
 import { ParamSchema } from 'express-validator';
 
-export type RequestBodySchema<T> = {
+export type RequestSchema<T> = {
   [K in keyof T]?: ParamSchema;
 };
 

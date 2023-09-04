@@ -14,7 +14,7 @@ import { TweetRequestBody } from '~/models/requests/Tweet.requests';
 import { TokenPayload } from '~/models/requests/User.requests';
 import Tweet from '~/models/schemas/Tweet.schema';
 import databaseService from '~/services/database.services';
-import { RequestBodySchema, numberEnumToArray } from '~/utils/commons';
+import { RequestSchema, numberEnumToArray } from '~/utils/commons';
 import { validate } from '~/utils/validation';
 
 const imageSchema: ParamSchema = {
@@ -123,8 +123,38 @@ const createTweetSchema = checkSchema(
         }
       }
     }
-  } as RequestBodySchema<TweetRequestBody>,
+  } as RequestSchema<TweetRequestBody>,
   ['body']
+);
+
+const getTweetChildrenSchema = checkSchema(
+  {
+    limit: {
+      isNumeric: true,
+      custom: {
+        options: async (value) => {
+          const num = Number(value);
+          if (num < 1) {
+            throw new Error('Minumum is 1');
+          }
+          if (num > 100 && num < 1) {
+            throw new Error('Maximum is 100');
+          }
+          return true;
+        }
+      }
+    },
+    page: {
+      isNumeric: true
+    },
+    tweet_type: {
+      isIn: {
+        options: [tweetTypes],
+        errorMessage: 'Invalid type'
+      }
+    }
+  },
+  ['query']
 );
 
 const tweetIdSchema = checkSchema(
@@ -259,6 +289,7 @@ const tweetIdSchema = checkSchema(
   },
   ['body', 'params']
 );
+
 export const audienceValidator = async (
   req: Request,
   res: Response,
@@ -300,3 +331,4 @@ export const audienceValidator = async (
 
 export const createTweetValidator = validate(createTweetSchema);
 export const tweetIdValidator = validate(tweetIdSchema);
+export const getTweetChildrenValidator = validate(getTweetChildrenSchema);

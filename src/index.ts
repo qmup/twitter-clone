@@ -20,6 +20,7 @@ const connectIndexDb = async () => {
   databaseService.indexRefreshTokens();
   databaseService.indexFollowers();
   databaseService.indexHashtags();
+  databaseService.indexTweets();
 };
 
 connectIndexDb();

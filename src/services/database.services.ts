@@ -81,12 +81,10 @@ class DatabaseService {
   }
 
   async indexTweets() {
-    // const isExistedIndex = this.followers.indexExists([
-    //   'user_id_1_follower_id_1'
-    // ]);
-    // if (!isExistedIndex) {
-    //   this.followers.createIndex({ user_id: 1, follower_id: 1 });
-    // }
+    const isExistedIndex = this.tweets.indexExists(['content_text']);
+    if (!isExistedIndex) {
+      this.tweets.createIndex({ content: 'text' });
+    }
   }
 
   get hashtags(): Collection<Hashtag> {

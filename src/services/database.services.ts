@@ -92,9 +92,9 @@ class DatabaseService {
   }
 
   async indexHashtags() {
-    const isExistedIndex = this.followers.indexExists(['name_1']);
+    const isExistedIndex = this.hashtags.indexExists(['name_text']);
     if (!isExistedIndex) {
-      this.followers.createIndex({ name: 1 });
+      this.hashtags.createIndex({ name: 'text' });
     }
   }
 

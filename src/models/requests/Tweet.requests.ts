@@ -22,7 +22,7 @@ export interface GetTweetChildrenRequestQuery extends Query {
   limit: string;
 }
 
-export interface GetNewsFeedsRequestQuery extends Query {
+export interface Pagination extends Query {
   page: string;
   limit: string;
 }

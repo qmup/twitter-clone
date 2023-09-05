@@ -2,9 +2,9 @@ import { Request, Response } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
 import { TweetType } from '~/constants/enums';
 import {
-  GetNewsFeedsRequestQuery,
   GetTweetChildrenRequestQuery,
   GetTweetRequestParams,
+  Pagination,
   TweetRequestBody
 } from '~/models/requests/Tweet.requests';
 import { TokenPayload } from '~/models/requests/User.requests';
@@ -67,7 +67,7 @@ export const getTweetChildrenController = async (
 };
 
 export const getNewsFeedsController = async (
-  req: Request<any, any, any, GetNewsFeedsRequestQuery>,
+  req: Request<any, any, any, Pagination>,
   res: Response
 ) => {
   const { limit, page } = req.query;

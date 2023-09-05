@@ -247,7 +247,7 @@ class SearchService {
       }
     });
 
-    return { tweets, total: total.tweet_count };
+    return { tweets, total: total?.tweet_count ?? 0 };
   }
 }
 

@@ -35,7 +35,7 @@ class DatabaseService {
   }
 
   async indexUsers() {
-    const isExistedIndex = this.users.indexExists([
+    const isExistedIndex = await this.users.indexExists([
       'email_1',
       'email_1_password_1',
       'user_id_1_follower_id_1',
@@ -55,7 +55,10 @@ class DatabaseService {
   }
 
   async indexRefreshTokens() {
-    const isExistedIndex = this.refreshTokens.indexExists(['exp_1', 'token_1']);
+    const isExistedIndex = await this.refreshTokens.indexExists([
+      'exp_1',
+      'token_1'
+    ]);
     if (!isExistedIndex) {
       this.refreshTokens.createIndex({ token: 1 });
       // background task trong mongodb, run every minute to check -> automatically remove expired deocument
@@ -68,7 +71,7 @@ class DatabaseService {
   }
 
   async indexFollowers() {
-    const isExistedIndex = this.followers.indexExists([
+    const isExistedIndex = await this.followers.indexExists([
       'user_id_1_follower_id_1'
     ]);
     if (!isExistedIndex) {
@@ -81,9 +84,12 @@ class DatabaseService {
   }
 
   async indexTweets() {
-    const isExistedIndex = this.tweets.indexExists(['content_text']);
+    const isExistedIndex = await this.tweets.indexExists(['content_text']);
     if (!isExistedIndex) {
-      this.tweets.createIndex({ content: 'text' });
+      this.tweets.createIndex(
+        { content: 'text' },
+        { default_language: 'none' }
+      );
     }
   }
 
@@ -92,7 +98,7 @@ class DatabaseService {
   }
 
   async indexHashtags() {
-    const isExistedIndex = this.hashtags.indexExists(['name_text']);
+    const isExistedIndex = await this.hashtags.indexExists(['name_text']);
     if (!isExistedIndex) {
       this.hashtags.createIndex({ name: 'text' });
     }

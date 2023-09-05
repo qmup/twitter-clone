@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
 import { TweetType } from '~/constants/enums';
 import {
+  GetNewsFeedsRequestQuery,
   GetTweetChildrenRequestQuery,
   GetTweetRequestParams,
   TweetRequestBody
@@ -57,9 +58,33 @@ export const getTweetChildrenController = async (
     message: 'Get tweet children success',
     result: {
       tweets,
-      limit,
-      page,
       tweet_type,
+      limit: Number(limit),
+      page: Number(page),
+      total_page: Math.ceil(total / Number(limit))
+    }
+  });
+};
+
+export const getNewsFeedsController = async (
+  req: Request<any, any, any, GetNewsFeedsRequestQuery>,
+  res: Response
+) => {
+  const { limit, page } = req.query;
+  const { user_id } = req.decoded_authorization as TokenPayload;
+
+  const { total, tweets } = await tweetsService.getNewsFeeds({
+    limit: Number(limit),
+    page: Number(page),
+    user_id
+  });
+
+  return res.json({
+    message: 'Get newsfeeds success',
+    result: {
+      tweets,
+      limit: Number(limit),
+      page: Number(page),
       total_page: Math.ceil(total / Number(limit))
     }
   });

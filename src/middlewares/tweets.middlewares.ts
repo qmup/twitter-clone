@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { ParamSchema, checkSchema } from 'express-validator';
+import { checkSchema } from 'express-validator';
 import { isEmpty } from 'lodash';
 import { ObjectId } from 'mongodb';
 import {
@@ -17,17 +17,26 @@ import databaseService from '~/services/database.services';
 import { RequestSchema, numberEnumToArray } from '~/utils/commons';
 import { validate } from '~/utils/validation';
 
-const imageSchema: ParamSchema = {
-  optional: true,
-  isString: true,
-  trim: true,
-  isLength: {
-    options: {
-      min: 1,
-      max: 200
+const paginationSchema = checkSchema({
+  limit: {
+    isNumeric: true,
+    custom: {
+      options: async (value) => {
+        const num = Number(value);
+        if (num < 1) {
+          throw new Error('Minumum is 1');
+        }
+        if (num > 100 && num < 1) {
+          throw new Error('Maximum is 100');
+        }
+        return true;
+      }
     }
+  },
+  page: {
+    isNumeric: true
   }
-};
+});
 
 const tweetTypes = numberEnumToArray(TweetType);
 const tweetAudiences = numberEnumToArray(TweetAudience);
@@ -129,24 +138,6 @@ const createTweetSchema = checkSchema(
 
 const getTweetChildrenSchema = checkSchema(
   {
-    limit: {
-      isNumeric: true,
-      custom: {
-        options: async (value) => {
-          const num = Number(value);
-          if (num < 1) {
-            throw new Error('Minumum is 1');
-          }
-          if (num > 100 && num < 1) {
-            throw new Error('Maximum is 100');
-          }
-          return true;
-        }
-      }
-    },
-    page: {
-      isNumeric: true
-    },
     tweet_type: {
       isIn: {
         options: [tweetTypes],
@@ -158,6 +149,139 @@ const getTweetChildrenSchema = checkSchema(
 );
 
 const tweetIdSchema = checkSchema(
+  {
+    tweet_id: {
+      isMongoId: true,
+      custom: {
+        options: async (value, { req }) => {
+          const [tweet] = await databaseService.tweets
+            .aggregate<Tweet>([
+              {
+                $match: {
+                  _id: new ObjectId(value)
+                }
+              },
+              {
+                $lookup: {
+                  from: 'hashtags',
+                  localField: 'hashtags',
+                  foreignField: '_id',
+                  as: 'hashtags'
+                }
+              },
+              {
+                $lookup: {
+                  from: 'users',
+                  localField: 'mentions',
+                  foreignField: '_id',
+                  as: 'mentions'
+                }
+              },
+              {
+                $addFields: {
+                  mentions: {
+                    $map: {
+                      input: '$mentions',
+                      as: 'mention',
+                      in: {
+                        _id: '$$mention._id',
+                        name: '$$mention.name',
+                        username: '$$mention.username',
+                        email: '$$mention.email'
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                $lookup: {
+                  from: 'bookmarks',
+                  localField: '_id',
+                  foreignField: 'tweet_id',
+                  as: 'bookmarks'
+                }
+              },
+              {
+                $lookup: {
+                  from: 'likes',
+                  localField: '_id',
+                  foreignField: 'tweet_id',
+                  as: 'likes'
+                }
+              },
+              {
+                $lookup: {
+                  from: 'tweets',
+                  localField: '_id',
+                  foreignField: 'parent_id',
+                  as: 'tweet_children'
+                }
+              },
+              {
+                $addFields: {
+                  bookmarks: {
+                    $size: '$bookmarks'
+                  },
+                  likes: {
+                    $size: '$likes'
+                  },
+                  retweet_count: {
+                    $size: {
+                      $filter: {
+                        input: '$tweet_children',
+                        as: 'item',
+                        cond: {
+                          $eq: ['$$item.type', TweetType.Retweet]
+                        }
+                      }
+                    }
+                  },
+                  comment_count: {
+                    $size: {
+                      $filter: {
+                        input: '$tweet_children',
+                        as: 'item',
+                        cond: {
+                          $eq: ['$$item.type', TweetType.Comment]
+                        }
+                      }
+                    }
+                  },
+                  quote_count: {
+                    $size: {
+                      $filter: {
+                        input: '$tweet_children',
+                        as: 'item',
+                        cond: {
+                          $eq: ['$$item.type', TweetType.QuoteTweet]
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                $project: {
+                  tweet_children: 0
+                }
+              }
+            ])
+            .toArray();
+          if (!tweet) {
+            throw new ErrorWithStatus({
+              status: HTTP_STATUS.BAD_GATEWAY,
+              message: 'Tweet not found'
+            });
+          }
+          req.tweet = tweet;
+        }
+      }
+    }
+  },
+  ['body', 'params']
+);
+
+const getNewsFeedsSchema = checkSchema(
   {
     tweet_id: {
       isMongoId: true,
@@ -332,3 +456,5 @@ export const audienceValidator = async (
 export const createTweetValidator = validate(createTweetSchema);
 export const tweetIdValidator = validate(tweetIdSchema);
 export const getTweetChildrenValidator = validate(getTweetChildrenSchema);
+export const paginationValidator = validate(paginationSchema);
+export const getNewsFeedsValidator = validate(getNewsFeedsSchema);

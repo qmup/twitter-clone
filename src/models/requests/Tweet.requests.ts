@@ -27,7 +27,7 @@ export enum MediaTypeQuery {
   Video = 'video'
 }
 
-export interface Pagination extends Query {
+export interface Pagination {
   page: string;
   limit: string;
 }

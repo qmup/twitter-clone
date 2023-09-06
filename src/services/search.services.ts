@@ -6,9 +6,10 @@ import databaseService from './database.services';
 
 class SearchService {
   async search(query: SearchQuery & { user_id?: string }) {
-    const { user_id, media_type } = query;
+    const { user_id, media_type, people_follow: pl } = query;
     const limit = Number(query.limit);
     const page = Number(query.page);
+    const people_follow = !!pl;
 
     const $match: any = {
       $text: {
@@ -21,6 +22,16 @@ class SearchService {
     }
     if (media_type && media_type === MediaTypeQuery.Video) {
       $match['medias.type'] = { $in: [MediaType.Video, MediaType.HLS] };
+    }
+    if (people_follow) {
+      const following_users = await databaseService.followers
+        .find({
+          user_id: new ObjectId(user_id)
+        })
+        .toArray();
+      $match['user_id'] = {
+        $in: following_users.map((item) => item.followed_user_id)
+      };
     }
 
     const [tweets, [total]] = await Promise.all([
@@ -62,6 +73,12 @@ class SearchService {
                 }
               ]
             }
+          },
+          {
+            $skip: limit * (page - 1)
+          },
+          {
+            $limit: limit
           },
           {
             $lookup: {
@@ -173,12 +190,6 @@ class SearchService {
                 date_of_birth: 0
               }
             }
-          },
-          {
-            $skip: limit * (page - 1)
-          },
-          {
-            $limit: limit
           }
         ])
         .toArray(),

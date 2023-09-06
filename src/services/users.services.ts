@@ -11,6 +11,7 @@ import { Follower } from '~/models/schemas/Follower.schema';
 import RefreshToken from '~/models/schemas/RefreshToken.schema';
 import { User } from '~/models/schemas/User.schema';
 import { hashPassword } from '~/utils/crypto';
+import { sendVerifyEmail } from '~/utils/email';
 import { signToken, verifyToken } from '~/utils/jwt';
 import { generateProjection } from '~/utils/utils';
 import databaseService from './database.services';
@@ -127,7 +128,12 @@ class UsersService {
         password: hashPassword(payload.password)
       })
     );
-    console.log('email_verify_token:', email_verify_token);
+
+    await sendVerifyEmail({
+      toAddress: payload.email,
+      subject: 'Email verification',
+      body: `<p> Click <a href='${process.env.CLIENT_URL}/verify-email?token=${email_verify_token}'> here</a> to verify your email </p>`
+    });
 
     const [access_token, refresh_token] = await this.signAccessAndRefreshToken({
       user_id: user_id.toString(),

@@ -1,5 +1,5 @@
 import { ObjectId, WithId } from 'mongodb';
-import { TweetType } from '~/constants/enums';
+import { TweetAudience, TweetType } from '~/constants/enums';
 import { TweetRequestBody } from '~/models/requests/Tweet.requests';
 import Hashtag from '~/models/schemas/Hashtag.schema';
 import Tweet from '~/models/schemas/Tweet.schema';
@@ -278,12 +278,12 @@ class TweetsService {
             $match: {
               $or: [
                 {
-                  audience: 0
+                  audience: TweetAudience.Everyone
                 },
                 {
                   $and: [
                     {
-                      audience: 1
+                      audience: TweetAudience.TwitterCircle
                     },
                     {
                       'author.twitter_circle': {
@@ -441,12 +441,12 @@ class TweetsService {
             $match: {
               $or: [
                 {
-                  audience: 0
+                  audience: TweetAudience.Everyone
                 },
                 {
                   $and: [
                     {
-                      audience: 1
+                      audience: TweetAudience.TwitterCircle
                     },
                     {
                       'author.twitter_circle': {

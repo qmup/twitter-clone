@@ -22,6 +22,11 @@ export interface GetTweetChildrenRequestQuery extends Query {
   limit: string;
 }
 
+export enum MediaTypeQuery {
+  Image = 'image',
+  Video = 'video'
+}
+
 export interface Pagination extends Query {
   page: string;
   limit: string;

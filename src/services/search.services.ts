@@ -1,23 +1,33 @@
 import { ObjectId } from 'mongodb';
-import { TweetType } from '~/constants/enums';
+import { MediaType, TweetAudience, TweetType } from '~/constants/enums';
 import { SearchQuery } from '~/models/requests/Search.requests';
+import { MediaTypeQuery } from '~/models/requests/Tweet.requests';
 import databaseService from './database.services';
 
 class SearchService {
   async search(query: SearchQuery & { user_id?: string }) {
-    const { user_id } = query;
+    const { user_id, media_type } = query;
     const limit = Number(query.limit);
     const page = Number(query.page);
+
+    const $match: any = {
+      $text: {
+        $search: query.content
+      }
+    };
+
+    if (media_type && media_type === MediaTypeQuery.Image) {
+      $match['medias.type'] = MediaType.Image;
+    }
+    if (media_type && media_type === MediaTypeQuery.Video) {
+      $match['medias.type'] = { $in: [MediaType.Video, MediaType.HLS] };
+    }
 
     const [tweets, [total]] = await Promise.all([
       databaseService.tweets
         .aggregate([
           {
-            $match: {
-              $text: {
-                $search: decodeURIComponent(query.content)
-              }
-            }
+            $match
           },
           {
             $lookup: {
@@ -36,12 +46,12 @@ class SearchService {
             $match: {
               $or: [
                 {
-                  audience: 0
+                  audience: TweetAudience.Everyone
                 },
                 {
                   $and: [
                     {
-                      audience: 1
+                      audience: TweetAudience.TwitterCircle
                     },
                     {
                       'author.twitter_circle': {
@@ -176,11 +186,7 @@ class SearchService {
       databaseService.tweets
         .aggregate([
           {
-            $match: {
-              $text: {
-                $search: decodeURIComponent(query.content)
-              }
-            }
+            $match
           },
           {
             $lookup: {
@@ -199,12 +205,12 @@ class SearchService {
             $match: {
               $or: [
                 {
-                  audience: 0
+                  audience: TweetAudience.Everyone
                 },
                 {
                   $and: [
                     {
-                      audience: 1
+                      audience: TweetAudience.TwitterCircle
                     },
                     {
                       'author.twitter_circle': {
@@ -246,7 +252,6 @@ class SearchService {
         tweet.guest_views += 1;
       }
     });
-
     return { tweets, total: total?.tweet_count ?? 0 };
   }
 }

@@ -8,13 +8,14 @@ export const searchController = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { content, limit, page } = req.query;
+  const { content, limit, page, media_type } = req.query;
 
   const { total, tweets } = await searchService.search({
     content,
     limit,
     page,
-    user_id: req.decoded_authorization?.user_id
+    user_id: req.decoded_authorization?.user_id,
+    media_type
   });
 
   return res.json({

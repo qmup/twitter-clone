@@ -11,7 +11,10 @@ import { Follower } from '~/models/schemas/Follower.schema';
 import RefreshToken from '~/models/schemas/RefreshToken.schema';
 import { User } from '~/models/schemas/User.schema';
 import { hashPassword } from '~/utils/crypto';
-import { sendVerifyEmail } from '~/utils/email';
+import {
+  sendForgotPasswordEmail,
+  sendVerifyRegisterEmail
+} from '~/utils/email';
 import { signToken, verifyToken } from '~/utils/jwt';
 import { generateProjection } from '~/utils/utils';
 import databaseService from './database.services';
@@ -129,10 +132,9 @@ class UsersService {
       })
     );
 
-    await sendVerifyEmail({
+    await sendVerifyRegisterEmail({
       toAddress: payload.email,
-      subject: 'Email verification',
-      body: `<p> Click <a href='${process.env.CLIENT_URL}/verify-email?token=${email_verify_token}'> here</a> to verify your email </p>`
+      email_verify_token
     });
 
     const [access_token, refresh_token] = await this.signAccessAndRefreshToken({
@@ -319,7 +321,7 @@ class UsersService {
     return { access_token, refresh_token };
   }
 
-  async resendVerifyEmail(user_id: string) {
+  async resendVerifyEmail(user_id: string, email: string) {
     const email_verify_token = await this.signVerifyEmailToken({
       user_id,
       verify: UserVerifyStatus.Unverified
@@ -328,16 +330,23 @@ class UsersService {
       { _id: new ObjectId(user_id) },
       { $set: { email_verify_token }, $currentDate: { updated_at: true } }
     );
-    console.log('email_verify_token:', email_verify_token);
+
+    await sendVerifyRegisterEmail({
+      toAddress: email,
+      email_verify_token
+    });
+
     return { message: 'Send verify email success' };
   }
 
   async forgotPassword({
     user_id,
-    verify
+    verify,
+    email
   }: {
     user_id: string;
     verify: UserVerifyStatus;
+    email: string;
   }) {
     const forgot_password_token = await this.signForgotPasswordToken({
       user_id,
@@ -349,7 +358,11 @@ class UsersService {
     );
     // Gửi email kèm đường link đến email cho người dùng
     // Path: /reset-password?token=token
-    console.log('forgot_password_token', forgot_password_token);
+    await sendForgotPasswordEmail({
+      toAddress: email,
+      forgot_password_token
+    });
+
     return { message: 'Check your email to reset password' };
   }
 

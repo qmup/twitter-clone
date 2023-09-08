@@ -50,8 +50,8 @@ export const handleUploadImage = (req: Request) => {
 export const handleUploadVideo = (req: Request) => {
   const form = formidable({
     uploadDir: UPLOAD_VIDEO_DIR,
-    maxFiles: 1,
-    maxFileSize: 50 * 1024 * 1024, // 50Mb
+    maxFiles: 4,
+    maxFileSize: 4 * 50 * 1024 * 1024, // 50Mb
     filter: ({ name, originalFilename, mimetype }) => {
       const valid = name === 'video' && !!mimetype?.includes('mp4');
       if (!valid) {
@@ -74,6 +74,7 @@ export const handleUploadVideo = (req: Request) => {
         const ext = getExtention(video.originalFilename as string);
         fs.renameSync(video.filepath, video.filepath + ext);
         video.newFilename = video.newFilename + ext;
+        video.filepath = video.filepath + ext;
       });
       resolve(videos);
     });

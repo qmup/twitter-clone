@@ -5,6 +5,7 @@ import { Server } from 'socket.io';
 // import '~/utils/fake';
 import { UPLOAD_VIDEO_DIR } from './constants/dir';
 import { defaultErrorHandler } from './middlewares/error.middlewares';
+import Conversation from './models/schemas/Conversations.schema';
 import bookmarksRouter from './routes/bookmarks.routes';
 import likesRouter from './routes/likes.routes';
 import mediasRouter from './routes/medias.routes';
@@ -28,24 +29,33 @@ const users: {
   [key: string]: { socket_id: string };
 } = {};
 io.on('connection', (socket) => {
-  console.log(`User ${socket.id} connected`);
-
+  console.log(`${socket.id} conntected`);
   const { user_id } = socket.handshake.auth;
   users[user_id] = { socket_id: socket.id };
 
-  socket.on('private message', (arg) => {
-    console.log('users:', users);
-    console.log('arg:', arg);
-    const receiver_socket_id = users[arg.to].socket_id;
-    socket
-      .to(receiver_socket_id)
-      .emit('receive private message', { content: arg.content, from: user_id });
+  socket.on('private message', async (arg) => {
+    console.log('Receive - arg:', arg);
+    const { from, to, content } = arg;
+    const receiver_socket_id = users[to]?.socket_id;
+    if (!receiver_socket_id) {
+      return;
+    }
+
+    await databaseService.conversations.insertOne(
+      new Conversation({ content, from_user_id: from, to_user_id: to })
+    );
+
+    socket.to(receiver_socket_id).emit('receive private message', {
+      content: arg.content,
+      from: user_id,
+      to
+    });
   });
 
   // Disconnect
   socket.on('disconnect', () => {
     delete users[user_id];
-    console.log(`User ${socket.id} disconnected`);
+    console.log(`${socket.id} disconnected`);
   });
 });
 

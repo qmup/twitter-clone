@@ -16,7 +16,7 @@ import { validate } from '~/utils/validation';
 // nếu chỉ muốn check body thì chỉ thêm body như là dependency
 // để nhanh hơn, cải thiện performance
 
-const userIdSchema: ParamSchema = {
+export const userIdSchema: ParamSchema = {
   custom: {
     options: async (value: string, { req }) => {
       if (!ObjectId.isValid(value)) {
@@ -340,7 +340,8 @@ const verifyForgotPasswordSchema = checkSchema(forgotPasswordTokenSchema, [
 const resetPasswordSchema = checkSchema(
   {
     password: passwordSchema,
-    confirm_password: confirmPasswordSchema
+    confirm_password: confirmPasswordSchema,
+    ...forgotPasswordTokenSchema
   },
   ['body']
 );

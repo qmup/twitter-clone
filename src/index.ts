@@ -3,10 +3,12 @@ import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 // import '~/utils/fake';
+import { ObjectId } from 'mongodb';
 import { UPLOAD_VIDEO_DIR } from './constants/dir';
 import { defaultErrorHandler } from './middlewares/error.middlewares';
 import Conversation from './models/schemas/Conversations.schema';
 import bookmarksRouter from './routes/bookmarks.routes';
+import conversationsRouter from './routes/conversations.routes';
 import likesRouter from './routes/likes.routes';
 import mediasRouter from './routes/medias.routes';
 import searchRouter from './routes/search.routes';
@@ -33,23 +35,23 @@ io.on('connection', (socket) => {
   const { user_id } = socket.handshake.auth;
   users[user_id] = { socket_id: socket.id };
 
-  socket.on('private message', async (arg) => {
-    console.log('Receive - arg:', arg);
-    const { from, to, content } = arg;
-    const receiver_socket_id = users[to]?.socket_id;
+  socket.on('send_message', async (arg) => {
+    const { from_user_id, to_user_id, content } = arg;
+    const receiver_socket_id = users[to_user_id]?.socket_id;
     if (!receiver_socket_id) {
       return;
     }
 
-    await databaseService.conversations.insertOne(
-      new Conversation({ content, from_user_id: from, to_user_id: to })
-    );
-
-    socket.to(receiver_socket_id).emit('receive private message', {
-      content: arg.content,
-      from: user_id,
-      to
+    const conversation = new Conversation({
+      content,
+      from_user_id: new ObjectId(from_user_id),
+      to_user_id: new ObjectId(to_user_id)
     });
+
+    const result = await databaseService.conversations.insertOne(conversation);
+    conversation._id = result.insertedId;
+
+    socket.to(receiver_socket_id).emit('receive_message', conversation);
   });
 
   // Disconnect
@@ -84,6 +86,7 @@ app.use('/tweets', tweetsRouter);
 app.use('/bookmarks', bookmarksRouter);
 app.use('/likes', likesRouter);
 app.use('/search', searchRouter);
+app.use('/conversations', conversationsRouter);
 
 app.use(defaultErrorHandler);
 

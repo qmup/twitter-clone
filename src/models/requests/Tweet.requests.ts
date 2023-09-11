@@ -16,10 +16,8 @@ export interface GetTweetRequestParams extends ParamsDictionary {
   tweet_id: string;
 }
 
-export interface GetTweetChildrenRequestQuery extends Query {
+export interface GetTweetChildrenRequestQuery extends Pagination, Query {
   tweet_type: string;
-  page: string;
-  limit: string;
 }
 
 export enum MediaTypeQuery {

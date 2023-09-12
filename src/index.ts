@@ -5,7 +5,11 @@ import { Server } from 'socket.io';
 // import '~/utils/fake';
 import { ObjectId } from 'mongodb';
 import { UPLOAD_VIDEO_DIR } from './constants/dir';
+import { UserVerifyStatus } from './constants/enums';
+import HTTP_STATUS from './constants/httpStatus';
 import { defaultErrorHandler } from './middlewares/error.middlewares';
+import { ErrorWithStatus } from './models/Errors';
+import { TokenPayload } from './models/requests/User.requests';
 import Conversation from './models/schemas/Conversations.schema';
 import bookmarksRouter from './routes/bookmarks.routes';
 import conversationsRouter from './routes/conversations.routes';
@@ -16,6 +20,7 @@ import staticRouter from './routes/static.routes';
 import tweetsRouter from './routes/tweets.routes';
 import usersRouter from './routes/users.routes';
 import databaseService from './services/database.services';
+import { verifyAccessToken } from './utils/commons';
 import { initFolder } from './utils/file';
 
 const port = 4000;
@@ -30,17 +35,39 @@ const io = new Server(httpServer, {
 const users: {
   [key: string]: { socket_id: string };
 } = {};
+
+io.use(async (socket, next) => {
+  const { Authorization } = socket.handshake.auth;
+  const access_token = Authorization?.split(' ')[1];
+  try {
+    const decoded_authorization = await verifyAccessToken(access_token);
+    const { verify } = decoded_authorization as TokenPayload;
+    if (verify !== UserVerifyStatus.Verified) {
+      throw new ErrorWithStatus({
+        message: 'User not verified',
+        status: HTTP_STATUS.FORBIDDEN
+      });
+    }
+    socket.handshake.auth.decoded_authorization = decoded_authorization;
+    next();
+  } catch (error) {
+    next({
+      message: 'Unauthorized',
+      name: 'UnauthorizedError',
+      data: error
+    });
+  }
+});
+
 io.on('connection', (socket) => {
   console.log(`${socket.id} conntected`);
-  const { user_id } = socket.handshake.auth;
+  const { user_id } = socket.handshake.auth
+    .decoded_authorization as TokenPayload;
   users[user_id] = { socket_id: socket.id };
 
   socket.on('send_message', async (arg) => {
     const { from_user_id, to_user_id, content } = arg;
     const receiver_socket_id = users[to_user_id]?.socket_id;
-    if (!receiver_socket_id) {
-      return;
-    }
 
     const conversation = new Conversation({
       content,
@@ -51,7 +78,9 @@ io.on('connection', (socket) => {
     const result = await databaseService.conversations.insertOne(conversation);
     conversation._id = result.insertedId;
 
-    socket.to(receiver_socket_id).emit('receive_message', conversation);
+    if (receiver_socket_id) {
+      socket.to(receiver_socket_id).emit('receive_message', conversation);
+    }
   });
 
   // Disconnect

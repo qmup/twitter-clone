@@ -61,18 +61,6 @@ usersRouter.post(
 usersRouter.post('/login', loginValidator, wrapRequestHandler(loginController));
 
 /**
- * Register a new user
- * Path: /register
- * Method: POST
- * Body: { name: string; email: string; password: string; date_of_birth: ISO8601 }
- */
-usersRouter.post(
-  '/register',
-  registerValidator,
-  wrapRequestHandler(registerController)
-);
-
-/**
  * Logout
  * Path: /logout
  * Method: POST

@@ -8,6 +8,7 @@ import { ErrorWithStatus } from '~/models/Errors';
 import { TokenPayload } from '~/models/requests/User.requests';
 import databaseService from '~/services/database.services';
 import usersService from '~/services/users.services';
+import { verifyAccessToken } from '~/utils/commons';
 import { verifyToken } from '~/utils/jwt';
 import { validate } from '~/utils/validation';
 
@@ -205,28 +206,7 @@ const accessTokenSchema = checkSchema(
       custom: {
         options: async (value, { req }) => {
           const access_token = (value || '').split(' ')[1];
-
-          if (!access_token) {
-            throw new ErrorWithStatus({
-              status: HTTP_STATUS.UNAUTHORIZED,
-              message: 'Token is required'
-            });
-          }
-
-          try {
-            const decoded_authorization = await verifyToken({
-              token: access_token,
-              privateKey: process.env.JWT_SECRET_ACCESS_TOKEN as string
-            });
-            (req as Request).decoded_authorization = decoded_authorization;
-          } catch (error) {
-            throw new ErrorWithStatus({
-              status: HTTP_STATUS.UNAUTHORIZED,
-              message: (error as JsonWebTokenError).message
-            });
-          }
-
-          return true;
+          return verifyAccessToken(access_token, req as Request);
         }
       }
     }

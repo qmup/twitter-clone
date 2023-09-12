@@ -17,8 +17,6 @@ export const verifyAccessToken = async (
   access_token: string,
   req?: Request
 ) => {
-  // console.log('req:', req);
-  console.log('access_token:', access_token);
   if (!access_token) {
     throw new ErrorWithStatus({
       status: HTTP_STATUS.UNAUTHORIZED,

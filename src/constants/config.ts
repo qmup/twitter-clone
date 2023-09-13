@@ -1,12 +1,26 @@
 import { config } from 'dotenv';
-import argv from 'minimist';
+import fs from 'fs';
+import path from 'path';
 
-const options = argv(process.argv.slice(2));
-export const isProduction = options.env === 'production';
+const env = process.env.NODE_ENV;
+const envFileName = `.env.${env}`;
+const isExistedEnvFile = fs.existsSync(path.resolve(envFileName));
 
-config({
-  path: options.env ? `{.env.${options.env}` : '.env'
-});
+if (!env) {
+  console.log(`Not added environment yet! (NODE_ENV=$environment)`);
+  process.exit(1);
+}
+
+if (!isExistedEnvFile) {
+  console.log(`Environment file (${envFileName}) not found!`);
+  process.exit(1);
+}
+
+console.log(`Using ${envFileName} for environment!`);
+
+export const isProduction = env === 'production';
+
+config({ path: envFileName });
 
 export const envConfig = {
   HOST: process.env.HOST as string,

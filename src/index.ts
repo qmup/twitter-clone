@@ -2,6 +2,8 @@ import cors from 'cors';
 import express from 'express';
 import { createServer } from 'http';
 // import '~/utils/fake';
+import helmet from 'helmet';
+import { envConfig, isProduction } from './constants/config';
 import { UPLOAD_VIDEO_DIR } from './constants/dir';
 import { defaultErrorHandler } from './middlewares/error.middlewares';
 import bookmarksRouter from './routes/bookmarks.routes';
@@ -42,7 +44,12 @@ connectIndexDb();
 initFolder();
 
 app.use(express.json());
-app.use(cors());
+app.use(helmet());
+app.use(
+  cors({
+    origin: isProduction ? envConfig.CLIENT_URL : '*'
+  })
+);
 
 app.use('/users', usersRouter);
 app.use('/medias', mediasRouter);

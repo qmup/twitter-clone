@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { ParamSchema, checkSchema } from 'express-validator';
 import { JsonWebTokenError } from 'jsonwebtoken';
 import { ObjectId } from 'mongodb';
+import { envConfig } from '~/constants/config';
 import { UserVerifyStatus } from '~/constants/enums';
 import HTTP_STATUS from '~/constants/httpStatus';
 import { ErrorWithStatus } from '~/models/Errors';
@@ -110,7 +111,7 @@ const forgotPasswordTokenSchema: Record<string, ParamSchema> = {
         try {
           const decoded_verify_forgot_password_token = await verifyToken({
             token: value,
-            privateKey: process.env.JWT_SECRET_FORGOT_PASSWORD_TOKEN as string
+            privateKey: envConfig.JWT_SECRET_FORGOT_PASSWORD_TOKEN as string
           });
 
           const { user_id } = decoded_verify_forgot_password_token;
@@ -230,7 +231,7 @@ const refreshTokenSchema = checkSchema(
             const [decoded_refresh_token, refresh_token] = await Promise.all([
               verifyToken({
                 token: value,
-                privateKey: process.env.JWT_SECRET_REFRESH_TOKEN as string
+                privateKey: envConfig.JWT_SECRET_REFRESH_TOKEN as string
               }),
               databaseService.refreshTokens.findOne({ token: value })
             ]);
@@ -274,7 +275,7 @@ const verifyEmailTokenSchema = checkSchema(
           try {
             const decoded_email_verify_token = await verifyToken({
               token: value,
-              privateKey: process.env.JWT_SECRET_EMAIL_VERIFY_TOKEN as string
+              privateKey: envConfig.JWT_SECRET_EMAIL_VERIFY_TOKEN as string
             });
 
             (req as Request).decoded_email_verify_token =

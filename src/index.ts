@@ -15,12 +15,17 @@ import usersRouter from './routes/users.routes';
 import databaseService from './services/database.services';
 import { initFolder } from './utils/file';
 import initSocket from './utils/socket';
+import { initSwagger } from './utils/swagger';
 
 const port = 4000;
 const app = express();
 const httpServer = createServer(app);
 
+// start socket server
 initSocket(httpServer);
+
+// init swagger
+initSwagger(app);
 
 const connectIndexDb = async () => {
   await databaseService.connect();
@@ -48,7 +53,6 @@ app.use('/bookmarks', bookmarksRouter);
 app.use('/likes', likesRouter);
 app.use('/search', searchRouter);
 app.use('/conversations', conversationsRouter);
-
 app.use(defaultErrorHandler);
 
 httpServer.listen(port);

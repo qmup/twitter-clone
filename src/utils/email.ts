@@ -1,15 +1,14 @@
 import { SendEmailCommand, SESClient } from '@aws-sdk/client-ses';
-import { config } from 'dotenv';
 import fs from 'fs';
+import { envConfig } from '~/constants/config';
 import { VERIFY_EMAIL_FILE } from '~/constants/dir';
 
-config();
 // Create SES service object.
 const sesClient = new SESClient({
-  region: process.env.AWS_REGION as string,
+  region: envConfig.AWS_REGION as string,
   credentials: {
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY_1 as string,
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID_1 as string
+    secretAccessKey: envConfig.AWS_SECRET_ACCESS_KEY_1 as string,
+    accessKeyId: envConfig.AWS_ACCESS_KEY_ID_1 as string
   }
 });
 
@@ -64,7 +63,7 @@ export const sendVerifyEmail = async ({
   body: string;
 }) => {
   const sendEmailCommand = createSendEmailCommand({
-    fromAddress: process.env.SES_ADDRESS_1 as string,
+    fromAddress: envConfig.SES_ADDRESS_1 as string,
     toAddresses: toAddress,
     body,
     subject
@@ -100,7 +99,7 @@ export const sendVerifyRegisterEmail = ({
       .replace('{{titleLink}}', 'Verify your email')
       .replace(
         '{{link}}',
-        `${process.env.CLIENT_URL}/verify-email?token=${email_verify_token}`
+        `${envConfig.CLIENT_URL}/verify-email?token=${email_verify_token}`
       )
   });
 };
@@ -126,7 +125,7 @@ export const sendForgotPasswordEmail = ({
       .replace('{{titleLink}}', 'Reset password')
       .replace(
         '{{link}}',
-        `${process.env.CLIENT_URL}/reset-password?token=${forgot_password_token}`
+        `${envConfig.CLIENT_URL}/reset-password?token=${forgot_password_token}`
       )
   });
 };

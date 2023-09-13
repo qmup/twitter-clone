@@ -1,6 +1,7 @@
 import { Request } from 'express';
 import { ParamSchema } from 'express-validator';
 import { JsonWebTokenError } from 'jsonwebtoken';
+import { envConfig } from '~/constants/config';
 import HTTP_STATUS from '~/constants/httpStatus';
 import { ErrorWithStatus } from '~/models/Errors';
 import { verifyToken } from './jwt';
@@ -27,7 +28,7 @@ export const verifyAccessToken = async (
   try {
     const decoded_authorization = await verifyToken({
       token: access_token,
-      privateKey: process.env.JWT_SECRET_ACCESS_TOKEN as string
+      privateKey: envConfig.JWT_SECRET_ACCESS_TOKEN as string
     });
 
     if (req) {

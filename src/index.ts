@@ -16,6 +16,7 @@ import tweetsRouter from './routes/tweets.routes';
 import usersRouter from './routes/users.routes';
 import databaseService from './services/database.services';
 import { initFolder } from './utils/file';
+import { limiter } from './utils/limiter';
 import initSocket from './utils/socket';
 import { initSwagger } from './utils/swagger';
 
@@ -50,6 +51,7 @@ app.use(
     origin: isProduction ? envConfig.CLIENT_URL : '*'
   })
 );
+app.use(limiter);
 
 app.use('/users', usersRouter);
 app.use('/medias', mediasRouter);

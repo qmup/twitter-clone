@@ -7,7 +7,7 @@ export const getKeoController = async (req: Request, res: Response) => {
   const keos = await keoService.getKeo();
   const result = keos.map((keo) => ({
     ...keo,
-    time: dayjs(keo.time).format('HH:mm ngày DD/MM'),
+    time: dayjs(keo.time).add(7, 'hours').format('HH:mm ngày DD/MM'),
     win_rate: `${keo.win_rate}%`,
     prediction: keo.prediction.toUpperCase()
   }));

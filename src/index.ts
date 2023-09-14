@@ -8,6 +8,7 @@ import { UPLOAD_VIDEO_DIR } from './constants/dir';
 import { defaultErrorHandler } from './middlewares/error.middlewares';
 import bookmarksRouter from './routes/bookmarks.routes';
 import conversationsRouter from './routes/conversations.routes';
+import keosRouter from './routes/keo.routes';
 import likesRouter from './routes/likes.routes';
 import mediasRouter from './routes/medias.routes';
 import searchRouter from './routes/search.routes';
@@ -53,6 +54,7 @@ app.use(
 );
 app.use(limiter);
 
+app.use('/keo-hom-nay', keosRouter);
 app.use('/users', usersRouter);
 app.use('/medias', mediasRouter);
 app.use('/static', staticRouter);

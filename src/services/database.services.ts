@@ -4,6 +4,7 @@ import Bookmark from '~/models/schemas/Bookmark.schema';
 import Conversation from '~/models/schemas/Conversations.schema';
 import { Follower } from '~/models/schemas/Follower.schema';
 import Hashtag from '~/models/schemas/Hashtag.schema';
+import Keo from '~/models/schemas/Keo.schema';
 import Like from '~/models/schemas/Like.schema';
 import RefreshToken from '~/models/schemas/RefreshToken.schema';
 import Tweet from '~/models/schemas/Tweet.schema';
@@ -112,6 +113,10 @@ class DatabaseService {
 
   get conversations(): Collection<Conversation> {
     return this.db.collection(envConfig.DB_CONVERSATIONS_COLLECTION as string);
+  }
+
+  get keo(): Collection<Keo> {
+    return this.db.collection(envConfig.DB_KEOS_COLLECTION as string);
   }
 }
 

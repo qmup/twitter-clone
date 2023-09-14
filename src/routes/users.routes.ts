@@ -38,36 +38,36 @@ import { wrapRequestHandler } from '~/utils/handlers';
 
 const usersRouter = Router();
 
-/**
- * @openapi
- * /users/login:
- *  post:
- *    tags:
- *      - users
- *    summary: Đăng nhập
- *    description: Đăng nhập vào hệ thống
- *    operationId: login
- *    requestBody:
- *      description: Thông tin đăng nhập
- *      content:
- *        application/json:
- *          schema:
- *            $ref: '#/components/schemas/LoginBody'
- *      required: true
- *    responses:
- *      '200':
- *        description: Đăng nhập thành công
- *        content:
- *          application/json:
- *            schema:
- *              type: object
- *              properties:
- *                message:
- *                  type: string
- *                  example: Login success
- *                result:
- *                  $ref: '#/components/schemas/SuccessAuthentication'
- */
+// /**
+//  * @openapi
+//  * /users/login:
+//  *  post:
+//  *    tags:
+//  *      - users
+//  *    summary: Đăng nhập
+//  *    description: Đăng nhập vào hệ thống
+//  *    operationId: login
+//  *    requestBody:
+//  *      description: Thông tin đăng nhập
+//  *      content:
+//  *        application/json:
+//  *          schema:
+//  *            $ref: '#/components/schemas/LoginBody'
+//  *      required: true
+//  *    responses:
+//  *      '200':
+//  *        description: Đăng nhập thành công
+//  *        content:
+//  *          application/json:
+//  *            schema:
+//  *              type: object
+//  *              properties:
+//  *                message:
+//  *                  type: string
+//  *                  example: Login success
+//  *                result:
+//  *                  $ref: '#/components/schemas/SuccessAuthentication'
+//  */
 /**
  * Oauth Google
  * Path: /oauth/google

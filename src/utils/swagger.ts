@@ -12,18 +12,18 @@ const options: swaggerJsdoc.Options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'X clone',
+      title: 'Làm giàu cùng thầy Quân',
       version: '1.0.0'
-    },
-    components: {
-      securitySchemes: {
-        BearerAuth: {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT'
-        }
-      }
     }
+    // components: {
+    //   securitySchemes: {
+    //     BearerAuth: {
+    //       type: 'http',
+    //       scheme: 'bearer',
+    //       bearerFormat: 'JWT'
+    //     }
+    //   }
+    // }
   },
   apis: ['./src/routes/*.routes.ts', './src/models/schemas/*.schema.ts'] // files containing annotations as above
 };

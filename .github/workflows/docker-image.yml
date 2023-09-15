@@ -12,7 +12,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      # - name: Create env file
-      #   run: echo "${{ secrets.TWITTER_CLONE_ENV_PRODUCTION }}" > .env.production
+      - name: Create env file
+        run: echo "${{ secrets.TWITTER_CLONE_ENV_PRODUCTION }}" > .env.production
       - name: Build the Docker image
-        run: docker build --progress=plain -t qmup/twitter:v0 .
+        run: docker build --progress=plain -t quannmse/twitter:v0 .
+      - name: Login to Docker hub
+        run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
+      - name: Push the Docker image
+        run: docker push quannmse/twitter:v0

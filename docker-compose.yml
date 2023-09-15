@@ -1,0 +1,6 @@
+version: '3'
+services:
+  twitter:
+    image: 'qmup/twitter:v0'
+    ports:
+      - '3000:3000'

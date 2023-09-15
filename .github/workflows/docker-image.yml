@@ -2,17 +2,17 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [ "dev" ]
+    branches: ['dev']
   pull_request:
-    branches: [ "dev" ]
+    branches: ['dev']
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+      - uses: actions/checkout@v3
+      # - name: Create env file
+      #   run: echo "${{ secrets.TWITTER_CLONE_ENV_PRODUCTION }}" > .env.production
+      - name: Build the Docker image
+        run: docker build --progress=plain -t qmup/twitter:v0 .

@@ -19,6 +19,6 @@ export const postKeoController = async (
   res: Response
 ) => {
   const body = req.body;
-  const result = keoService.postKeo(body);
+  const result = await keoService.postKeo(body);
   return res.json({ message: 'Post keo success', result });
 };

@@ -10,6 +10,7 @@ COPY twitter-swagger.yaml .
 COPY .env.production .
 COPY ./src ./src
 
+RUN apk add --no-cache ffmpeg
 RUN apk add python3
 RUN npm install pm2 -g
 RUN npm install

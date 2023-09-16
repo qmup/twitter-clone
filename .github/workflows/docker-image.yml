@@ -35,5 +35,6 @@ jobs:
           script: |
             docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
             docker pull quannmse/twitter:v0
+            docker stop twitter-clone
             docker rm twitter-clone
-            docker container run -dp 4000:4000 --name twitter-clone --restart unless-stopped quannmse/twitter:v0
+            docker run -dp 4000:4000 --name twitter-clone --restart unless-stopped quannmse/twitter:v0

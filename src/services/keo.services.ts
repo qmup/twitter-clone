@@ -13,7 +13,7 @@ class KeoService {
         {
           time: { $gt: start, $lt: end }
         },
-        { projection: { _id: 0, created_at: 0 } }
+        { projection: { created_at: 0, win_rate: 0 } }
       )
       .sort({ time: 1 })
       .toArray();
@@ -27,9 +27,10 @@ class KeoService {
         time: new Date(body.time)
       })
     );
-    return databaseService.keo.findOne({
+    const record = await databaseService.keo.findOne({
       _id: result.insertedId
     });
+    return record;
   }
 }
 

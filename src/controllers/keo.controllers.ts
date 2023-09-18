@@ -10,7 +10,10 @@ export const getKeoController = async (req: Request, res: Response) => {
     time: dayjs(keo.time).add(7, 'hours').format('HH:mm ngày DD/MM'),
     prediction: keo.prediction.toUpperCase()
   }));
-  return res.json({ message: 'Get keo success', result });
+  return res.json({
+    message: 'Get keo success',
+    result: result.length ? result : 'Hôm nay không có kèo nhé các trò'
+  });
 };
 
 export const postKeoController = async (
